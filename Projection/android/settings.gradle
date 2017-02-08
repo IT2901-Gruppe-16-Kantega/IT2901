@@ -1,0 +1,5 @@
+rootProject.name = 'Projection'
+
+include ':app'
+include ':react-native-sensor-manager'
+project(':react-native-sensor-manager').projectDir = new File(settingsDir, '../node_modules/react-native-sensor-manager/android')
