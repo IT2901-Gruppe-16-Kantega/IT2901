@@ -1,0 +1,10 @@
+
+// Ignore these files/folders
+ARTEST3/ProjectSettings
+ARTEST3/ProjectSettings/*
+ARTEST3/Temp
+ARTEST3/Temp/*
+ARTEST3/.vs
+ARTEST3/.vs/*
+ARTEST3/ARTEST3.csproj
+ARTEST3/ARTEST3.sln
