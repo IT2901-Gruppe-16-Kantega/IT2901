@@ -198,6 +198,7 @@ export default class Projection extends Component {
 			var _that = this;
 			var R, phi1, phi2, deltaPhi, deltaLambda, a, c, d;
 			R = 6371e3;
+			// Convert lat and lon to radians
 			phi1 = _that.state.latitude * (Math.PI / 180);
 			phi2 = lat2 * (Math.PI / 180);
 			deltaPhi = (lat2 - _that.state.latitude) * (Math.PI / 180);
@@ -212,10 +213,14 @@ export default class Projection extends Component {
 
 		relationToNorth(lat2, lon2) {
 			var _this = this;
-			var dLat = (lat2 - this.state.latitude);
-			var dLon = (lon2 - this.state.longitude);
+			var lat1 = this.state.latitude * (Math.PI / 180);
+			var lon1 = this.state.longitude * (Math.PI / 180);
+			lat2 *=  (Math.PI / 180);
+			lon2 *= (Math.PI / 180)
+			var dLat = (lat2 - lat1);
+			var dLon = (lon2 - lon1);
 			var y = Math.sin(dLon) * Math.cos(lat2);
-			var x = Math.cos(this.state.latitude) * Math.sin(lat2) - Math.sin(this.state.latitude) * Math.cos(lat2) * Math.cos(dLon);
+			var x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
 			var angle = Math.atan2(y, x);
 			var headingDeg = this.state.heading;
 			var angleDeg = angle * 180 / Math.PI; // To 360 degrees
@@ -249,7 +254,7 @@ export default class Projection extends Component {
 						Welcome to React Native!
 					</Text>
 					<Text style={ styles.instructions }>
-						Hallo
+						Hallo please
 					</Text>
 					<View>
 						<Text style={ this.state.xy }>
