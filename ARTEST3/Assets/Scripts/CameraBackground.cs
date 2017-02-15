@@ -6,7 +6,7 @@ using UnityEngine.UI;
 /*
 Renders the phone's camera onto the world
 */
-public class Camerabackground : MonoBehaviour {
+public class CameraBackground : MonoBehaviour {
 	// The camera itself
 	private WebCamTexture phoneCamera;
 	// The object that displays the picture
@@ -48,6 +48,16 @@ public class Camerabackground : MonoBehaviour {
 		} else {
 			// Otherwise draw it as it is
 			image.uvRect = new Rect(0, 0, 1, 1);
+		}
+	}
+
+	void OnGUI() {
+		if (GUI.Button(new Rect(10, Screen.height / 2 - 100, 200, 200), "Toggle Camera")) {
+			if(phoneCamera.isPlaying) {
+				phoneCamera.Stop();
+			} else {
+				phoneCamera.Play();
+			}
 		}
 	}
 }

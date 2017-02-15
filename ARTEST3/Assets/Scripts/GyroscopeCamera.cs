@@ -1,50 +1,96 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.UI;
 
 public class GyroscopeCamera : MonoBehaviour {
 	private Gyroscope gyro;
-
 	private bool gyroIsSupported;
 
-	private float initialYAngle = 0f;
-	private float appliedGyroYAngle = 0f;
-	private float calibrationYAngle = 0f;
+
+	public Text gyroText;
+	public Text gyroText2;
+
+	private const float lowPassFactor = 0.3f; // A float between 0.01f to 0.99f. Less means more dampening
+	private bool lowPassInit = true;
+
+	private readonly Quaternion baseIdentity = Quaternion.Euler(90, 0, 0);
+	private readonly Quaternion landscapeRight = Quaternion.Euler(0, 0, 90);
+	private readonly Quaternion landscapeLeft = Quaternion.Euler(0, 0, -90);
+	private readonly Quaternion upsideDown = Quaternion.Euler(0, 0, 180);
+
+	private Quaternion cameraBase = Quaternion.identity;
+	private Quaternion calibration = Quaternion.identity;
+	private Quaternion baseOrientation = Quaternion.Euler(90, 0, 0);
+	private Quaternion baseOrientationRotationFix = Quaternion.identity;
+
+	private Quaternion referanceRotation = Quaternion.identity;
 
 	void Start() {
 		gyroIsSupported = SystemInfo.supportsGyroscope;
 
-		if(gyroIsSupported) {
+		if (gyroIsSupported) {
 			gyro = Input.gyro;
 			gyro.enabled = true;
+			ResetBaseOrientation();
+			UpdateCalibration(true);
+			UpdateCameraBaseRotation(true);
+			RecalculateReferenceRotation();
 		} else {
 			Debug.Log("Gyroscope is not supported.");
 		}
-		initialYAngle = transform.eulerAngles.y;
 	}
 
 	void Update() {
-		ApplyGyroRotation();
-		ApplyCalibration();
+		if (!gyroIsSupported) {
+			return;
+		}
+		transform.rotation = Quaternion.Slerp(transform.rotation,
+cameraBase * (ConvertRotation(referanceRotation * Input.gyro.attitude)), lowPassFactor);
+		gyroText.text = "";
+		gyroText.text += "\nattitude" + gyro.attitude;
+		gyroText.text += "\nattitude" + gyro.attitude.eulerAngles;
+		gyroText.text += "\nrotation" + transform.rotation.eulerAngles;
 	}
 
-	void OnGUI() {
-		if (GUILayout.Button("Calibrate", GUILayout.Width(300), GUILayout.Height(100))) {
-			CalibrateYAngle();
+	// Update the gyroscope calibration
+	private void UpdateCalibration(bool onlyHorizontal) {
+		if (onlyHorizontal) {
+			var fw = (Input.gyro.attitude) * (-Vector3.forward);
+			fw.z = 0;
+			if (fw == Vector3.zero) {
+				calibration = Quaternion.identity;
+			} else {
+				calibration = (Quaternion.FromToRotation(baseOrientationRotationFix * Vector3.up, fw));
+			}
+		} else {
+			calibration = Input.gyro.attitude;
 		}
 	}
 
-	public void CalibrateYAngle() {
-		calibrationYAngle = appliedGyroYAngle - initialYAngle; // Offsets the y angle in case it wasn't 0 at edit time.
+
+	private void UpdateCameraBaseRotation(bool onlyHorizontal) {
+		if (onlyHorizontal) {
+			var fw = transform.forward;
+			fw.y = 0;
+			if (fw == Vector3.zero) {
+				cameraBase = Quaternion.identity;
+			} else {
+				cameraBase = Quaternion.FromToRotation(Vector3.forward, fw);
+			}
+		} else {
+			cameraBase = transform.rotation;
+		}
 	}
 
-	void ApplyGyroRotation() {
-		transform.rotation = Input.gyro.attitude;
-		transform.Rotate(0f, 0f, 180f, Space.Self); // Swap "handedness" of quaternion from gyro.
-		transform.Rotate(90f, 180f, 0f, Space.World); // Rotate to make sense as a camera pointing out the back of your device.
-		appliedGyroYAngle = transform.eulerAngles.y; // Save the angle around y axis for use in calibration.
+	private static Quaternion ConvertRotation(Quaternion q) {
+		return new Quaternion(q.x, q.y, -q.z, -q.w);
 	}
 
-	void ApplyCalibration() {
-		transform.Rotate(0f, -calibrationYAngle, 0f, Space.World); // Rotates y angle back however much it deviated when calibrationYAngle was saved.
+	private void ResetBaseOrientation() {
+		baseOrientation = baseOrientationRotationFix * baseIdentity;
+	}
+
+	private void RecalculateReferenceRotation() {
+		referanceRotation = Quaternion.Inverse(baseOrientation) * Quaternion.Inverse(calibration);
 	}
 }

@@ -11,7 +11,7 @@ public class GenerateObjects : MonoBehaviour {
 	const float EARTH_MEAN_RADIUS = 6372.8e3f;
 
 	// Our location. Default location is somewhere in the middle of Trondheim
-	GPSLocation myLocation = new GPSLocation(63.411595, 10.438659);
+	GPSLocation myLocation = new GPSLocation(63.430626, 10.392145);
 	// The list containing the locations of each road object
 	List<GPSLocation> roadObjectList = new List<GPSLocation>();
 
@@ -59,6 +59,7 @@ public class GenerateObjects : MonoBehaviour {
 		// Start a coroutine that tries to get the data from the API
 		// We dont want this as a method on it's own, because it will stall the Start() method
 		StartCoroutine(WaitForRequest(www));
+		Debug.Log(myLocation.latitude + " " + myLocation.longitude);
 	}
 
 	// Update is called once per frame
@@ -111,6 +112,7 @@ public class GenerateObjects : MonoBehaviour {
 			// Calculate the distance and bearing between us and the location
 			float distance = Haversine(myLocation, location);
 			float bearing = CalculateBearing(myLocation, location);
+			Debug.Log("Distance: " + distance + "\nBearing: " + bearing);
 			// calculate the x and z offset between us and the location and update the x and z position
 			position.x = -Mathf.Cos(bearing) * distance;
 			position.z = Mathf.Sin(bearing) * distance;
@@ -134,7 +136,7 @@ public class GenerateObjects : MonoBehaviour {
 		} else {
 		// Else handle the data
 			// For debugging purposes
-			Debug.Log(roadObjectList.Count);
+			//Debug.Log(roadObjectList.Count);
 			Debug.Log("WWW Ok!: " + www.text);
 
 			// Make a new RootObject and parse the json data from the request
@@ -148,16 +150,21 @@ public class GenerateObjects : MonoBehaviour {
 				string[] wkt = o.geometri.wkt.Split(delimiterChars);
 				// Make a new GPSLocation using the values from the splitted text
 				// TODO Currently only supports POINT because POINT has 3 points of data
-				GPSLocation oLocation = new GPSLocation(double.Parse(wkt[2]), double.Parse(wkt[3]), double.Parse(wkt[4]));
+				GPSLocation oLocation;
+                if (wkt.Length == 6) {
+					oLocation = new GPSLocation(double.Parse(wkt[2]), double.Parse(wkt[3]), double.Parse(wkt[4]));
+				} else {
+					oLocation = new GPSLocation(double.Parse(wkt[2]), double.Parse(wkt[3]));
+				}
 
 				// For debugging purposes
-				Debug.Log(oLocation.latitude + " - " + oLocation.longitude + " - " + oLocation.altitude);
+				//Debug.Log(oLocation.latitude + " - " + oLocation.longitude + " - " + oLocation.altitude);
 
 				// Add the location to our roadObjectList
 				roadObjectList.Add(oLocation);
 			}
 			// For debuggin purposes
-			Debug.Log(roadObjectList.Count);
+			//Debug.Log(roadObjectList.Count);
 
 			// Run the method that instantiates the GameObjects from the locations
 			MakeObjectsFromLatLon();

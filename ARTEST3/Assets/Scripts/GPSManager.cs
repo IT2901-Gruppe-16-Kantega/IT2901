@@ -27,11 +27,34 @@ public class GPSManager : MonoBehaviour {
 	public float myAltitude = 10f;
 
 	// The Service that handles the GPS on the phone
-	LocationService service;
+	private LocationService service;
 
 	void Start() {
 		// Start a coroutine to fetch our location. Because it might take a while, we run it as a coroutine. Running it as is will stall Start()
 		StartCoroutine(GetLocation());
+	}
+
+	void Update() {
+		// Clear out the text
+		text.text = "";
+		// If the compass is enabeld update trueNorth and headingAccuracy
+		if (Input.compass.enabled) {
+			trueNorth = Input.compass.trueHeading;
+			headingAccuracy = Input.compass.headingAccuracy;
+			text.text += "True North: " + trueNorth + " +- " + headingAccuracy;
+		}
+		// If we have a service, update our position
+		if (service != null) {
+			text.text += service.status;
+			if(service.status == LocationServiceStatus.Running) {
+				myLatitude = service.lastData.latitude;
+				myLongitude = service.lastData.longitude;
+				myAltitude = service.lastData.altitude;
+				text.text += "\nLatitude: " + myLatitude + 
+							"\nLongitude: " + myLongitude + 
+							"\nAltitude: " + myAltitude;
+			}
+		}
 	}
 
 	// The coroutine that gets our current GPS position
@@ -78,7 +101,7 @@ public class GPSManager : MonoBehaviour {
 		}
 
 		// Start a new coroutine to update our position and compass
-		StartCoroutine(UpdatePositionAndHeading());
+		//StartCoroutine(UpdatePositionAndHeading());
 	}
 
 	// The coroutine which updates our position and heading
