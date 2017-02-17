@@ -1,36 +1,37 @@
 ﻿using UnityEngine;
-using System.Collections;
-using UnityEngine.UI;
 
+/*
+Translates the device's gyroscope attitude into camera rotations
+*/
 public class GyroscopeCamera : MonoBehaviour {
+	// Gyroscope variables
 	private Gyroscope gyro;
 	private bool gyroIsSupported;
 
+	// For filtering gyro data
+	private const float lowPassFactor = 0.5f; // A float between 0.01f to 0.99f. Less means more dampening
 
-	public Text gyroText;
-	public Text gyroText2;
-
-	private const float lowPassFactor = 0.3f; // A float between 0.01f to 0.99f. Less means more dampening
-	private bool lowPassInit = true;
-
+	// Different rotations based on the phone's display mode
 	private readonly Quaternion baseIdentity = Quaternion.Euler(90, 0, 0);
-	private readonly Quaternion landscapeRight = Quaternion.Euler(0, 0, 90);
-	private readonly Quaternion landscapeLeft = Quaternion.Euler(0, 0, -90);
-	private readonly Quaternion upsideDown = Quaternion.Euler(0, 0, 180);
 
+	// Variables for fixing the gyroscope
 	private Quaternion cameraBase = Quaternion.identity;
 	private Quaternion calibration = Quaternion.identity;
 	private Quaternion baseOrientation = Quaternion.Euler(90, 0, 0);
 	private Quaternion baseOrientationRotationFix = Quaternion.identity;
 
-	private Quaternion referanceRotation = Quaternion.identity;
+	private Quaternion referenceRotation = Quaternion.identity;
 
 	void Start() {
+		// Check if gyroscope is supported on this device
 		gyroIsSupported = SystemInfo.supportsGyroscope;
 
 		if (gyroIsSupported) {
+			// Get the gyroscope from input
 			gyro = Input.gyro;
+			// Enable it
 			gyro.enabled = true;
+			// Calibrate stuff
 			ResetBaseOrientation();
 			UpdateCalibration(true);
 			UpdateCameraBaseRotation(true);
@@ -41,15 +42,13 @@ public class GyroscopeCamera : MonoBehaviour {
 	}
 
 	void Update() {
+		// Can't do anything if we don't have a gyro.
 		if (!gyroIsSupported) {
 			return;
 		}
+		// Slerp is spherical linear interpolation, which means that our movement is smoothed instead of jittering
 		transform.rotation = Quaternion.Slerp(transform.rotation,
-cameraBase * (ConvertRotation(referanceRotation * Input.gyro.attitude)), lowPassFactor);
-		gyroText.text = "";
-		gyroText.text += "\nattitude" + gyro.attitude;
-		gyroText.text += "\nattitude" + gyro.attitude.eulerAngles;
-		gyroText.text += "\nrotation" + transform.rotation.eulerAngles;
+cameraBase * (ConvertRotation(referenceRotation * Input.gyro.attitude)), lowPassFactor);
 	}
 
 	// Update the gyroscope calibration
@@ -91,6 +90,6 @@ cameraBase * (ConvertRotation(referanceRotation * Input.gyro.attitude)), lowPass
 	}
 
 	private void RecalculateReferenceRotation() {
-		referanceRotation = Quaternion.Inverse(baseOrientation) * Quaternion.Inverse(calibration);
+		referenceRotation = Quaternion.Inverse(baseOrientation) * Quaternion.Inverse(calibration);
 	}
 }

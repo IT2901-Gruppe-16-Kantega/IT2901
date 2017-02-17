@@ -25,8 +25,8 @@ public class GenerateObjects : MonoBehaviour {
 	The deviation between the latitude and longitude of your current location
 	Used when querying the database to limit how many items we get. A bigger number
 	means that you extend the area around you.
-	*/ 
-	private float deltaLatLong = 0.001f;
+	*/
+	private float deltaLatLong = 0.002f;
 
 	// SerializeField makes the private field visible to the editor
 	// Currently, no other GameObject needs the GPSManager, so this is fine
@@ -41,31 +41,37 @@ public class GenerateObjects : MonoBehaviour {
 		so make sure that it has it attached
 		*/
 		gpsManager = GetComponent<GPSManager>();
-		// Update our location using whatever data the GPSManager got
-		myLocation = new GPSLocation(gpsManager.myLatitude, gpsManager.myLongitude, gpsManager.myAltitude);
-		// The query to fetch road signs
-		string url = API_URL + "vegobjekter/96?inkluder=geometri&srid=4326&kartutsnitt=" +
-			(myLocation.longitude - deltaLatLong) + "," +
-			(myLocation.latitude - deltaLatLong) + "," +
-			(myLocation.longitude + deltaLatLong) + "," +
-			(myLocation.latitude + deltaLatLong);
-		// A dictionary that contains the relevant headers we need to send to the API
-		Dictionary<string, string> headers = new Dictionary<string, string>();
-		// Want it in JSON format
-		headers.Add("Accept", "application/vnd.vegvesen.nvdb-v2+json");
-		// Make a WWW (similar to fetch)
-		WWW www = new WWW(url, null, headers);
-		print(url);
-		// Start a coroutine that tries to get the data from the API
-		// We dont want this as a method on it's own, because it will stall the Start() method
-		StartCoroutine(WaitForRequest(www));
-		Debug.Log(myLocation.latitude + " " + myLocation.longitude);
+		StartCoroutine(waitForGPS());
+		///*
+		//Get the GPSManager script atteched to this same object. Gives you an error if this gameobject does not have the GPSManager script attached
+		//so make sure that it has it attached
+		//*/
+		//gpsManager = GetComponent<GPSManager>();
+		//// Update our location using whatever data the GPSManager got
+		//myLocation = new GPSLocation(gpsManager.myLatitude, gpsManager.myLongitude, gpsManager.myAltitude);
+		//// The query to fetch road signs
+		//string url = API_URL + "vegobjekter/96?inkluder=geometri&srid=4326&kartutsnitt=" +
+		//	(myLocation.longitude - deltaLatLong) + "," +
+		//	(myLocation.latitude - deltaLatLong) + "," +
+		//	(myLocation.longitude + deltaLatLong) + "," +
+		//	(myLocation.latitude + deltaLatLong);
+		//// A dictionary that contains the relevant headers we need to send to the API
+		//Dictionary<string, string> headers = new Dictionary<string, string>();
+		//// Want it in JSON format
+		//headers.Add("Accept", "application/vnd.vegvesen.nvdb-v2+json");
+		//// Make a WWW (similar to fetch)
+		//WWW www = new WWW(url, null, headers);
+		//print(url);
+		//// Start a coroutine that tries to get the data from the API
+		//// We dont want this as a method on it's own, because it will stall the Start() method
+		//StartCoroutine(WaitForRequest(www));
+		//Debug.Log(myLocation.latitude + " " + myLocation.longitude);
 	}
 
 	// Update is called once per frame
 	void Update() {
 		// If we have a gpsManager
-		if(gpsManager != null) {
+		if (gpsManager != null) {
 			// Update our location
 			myLocation = new GPSLocation(gpsManager.myLatitude, gpsManager.myLongitude, gpsManager.myAltitude);
 		}
@@ -95,10 +101,10 @@ public class GenerateObjects : MonoBehaviour {
 	float CalculateBearing(GPSLocation startLocation, GPSLocation endLocation) {
 		float x = Mathf.Cos((float) startLocation.latitude * Mathf.Deg2Rad)
 				* Mathf.Sin((float) endLocation.latitude * Mathf.Deg2Rad)
-				- Mathf.Sin((float) startLocation.latitude * Mathf.Deg2Rad) 
-				* Mathf.Cos((float) endLocation.latitude * Mathf.Deg2Rad) 
+				- Mathf.Sin((float) startLocation.latitude * Mathf.Deg2Rad)
+				* Mathf.Cos((float) endLocation.latitude * Mathf.Deg2Rad)
 				* Mathf.Cos((float) (endLocation.longitude - startLocation.longitude) * Mathf.Deg2Rad);
-		float y = Mathf.Sin((float) (endLocation.longitude - startLocation.longitude) * Mathf.Deg2Rad) 
+		float y = Mathf.Sin((float) (endLocation.longitude - startLocation.longitude) * Mathf.Deg2Rad)
 				* Mathf.Cos((float) endLocation.latitude * Mathf.Deg2Rad);
 		return Mathf.Atan2(y, x) + Mathf.PI / 2;
 	}
@@ -134,7 +140,7 @@ public class GenerateObjects : MonoBehaviour {
 		if (!string.IsNullOrEmpty(www.error)) {
 			Debug.Log("WWW Error: " + www.error);
 		} else {
-		// Else handle the data
+			// Else handle the data
 			// For debugging purposes
 			//Debug.Log(roadObjectList.Count);
 			Debug.Log("WWW Ok!: " + www.text);
@@ -142,7 +148,7 @@ public class GenerateObjects : MonoBehaviour {
 			// Make a new RootObject and parse the json data from the request
 			RootObject data = JsonUtility.FromJson<RootObject>(www.text);
 			// Go through each Objekter in the data.objekter (the road objects)
-			foreach(Objekter o in data.objekter) {
+			foreach (Objekter o in data.objekter) {
 				// For debugging purposes
 				Debug.Log(o.geometri.wkt);
 
@@ -151,7 +157,7 @@ public class GenerateObjects : MonoBehaviour {
 				// Make a new GPSLocation using the values from the splitted text
 				// TODO Currently only supports POINT because POINT has 3 points of data
 				GPSLocation oLocation;
-                if (wkt.Length == 6) {
+				if (wkt.Length == 6) {
 					oLocation = new GPSLocation(double.Parse(wkt[2]), double.Parse(wkt[3]), double.Parse(wkt[4]));
 				} else {
 					oLocation = new GPSLocation(double.Parse(wkt[2]), double.Parse(wkt[3]));
@@ -169,6 +175,33 @@ public class GenerateObjects : MonoBehaviour {
 			// Run the method that instantiates the GameObjects from the locations
 			MakeObjectsFromLatLon();
 		}
+	}
+
+	IEnumerator waitForGPS() {
+		float maxWait = 10f;
+		while (!gpsManager.initialPositionUpdated && maxWait > 0) {
+			yield return new WaitForSeconds(1);
+			maxWait--;
+		}
+		// Update our location using whatever data the GPSManager got
+		myLocation = new GPSLocation(gpsManager.myLatitude, gpsManager.myLongitude, gpsManager.myAltitude);
+		// The query to fetch road signs
+		string url = API_URL + "vegobjekter/96?inkluder=geometri&srid=4326&kartutsnitt=" +
+			(myLocation.longitude - deltaLatLong) + "," +
+			(myLocation.latitude - deltaLatLong) + "," +
+			(myLocation.longitude + deltaLatLong) + "," +
+			(myLocation.latitude + deltaLatLong);
+		// A dictionary that contains the relevant headers we need to send to the API
+		Dictionary<string, string> headers = new Dictionary<string, string>();
+		// Want it in JSON format
+		headers.Add("Accept", "application/vnd.vegvesen.nvdb-v2+json");
+		// Make a WWW (similar to fetch)
+		WWW www = new WWW(url, null, headers);
+		print(url);
+		// Start a coroutine that tries to get the data from the API
+		// We dont want this as a method on it's own, because it will stall the Start() method
+		StartCoroutine(WaitForRequest(www));
+		Debug.Log(myLocation.latitude + " " + myLocation.longitude);
 	}
 
 	// The struct which contains latitude, longitude and altitude
