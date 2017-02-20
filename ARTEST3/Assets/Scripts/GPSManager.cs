@@ -26,6 +26,8 @@ public class GPSManager : MonoBehaviour {
 	public delegate void RoadObjectEventHandler();
 	public static event RoadObjectEventHandler onRoadObjectSpawn;
 
+	public Text debugText;
+
 	public static void updatePositions() {
 		if (onRoadObjectSpawn != null) {
 			onRoadObjectSpawn();
@@ -38,6 +40,7 @@ public class GPSManager : MonoBehaviour {
 		// If the gps service is not enabled by the user
 		if (!service.isEnabledByUser) {
 			Debug.Log("Location Services not enabled by user");
+			debugText.text = ("Location Services not enabled by user");
 		} else {
 			// Start a coroutine to fetch our location. Because it might take a while, we run it as a coroutine. Running it as is will stall Start()
 			StartCoroutine(GetLocation());
@@ -70,12 +73,12 @@ public class GPSManager : MonoBehaviour {
 
 		// If we timed out, stop this coroutine forever
 		if (maxWait < 1) {
-			Debug.Log("Timed out");
+			debugText.text = ("Timed out");
 			yield break;
 		}
 		// If the service failed, stop this coroutine forever
 		if (service.status == LocationServiceStatus.Failed) {
-			Debug.Log("Unable to determine device location");
+			debugText.text = ("Unable to determine device location");
 			yield break;
 		} else {
 			// Otherwise, update our location
