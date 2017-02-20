@@ -11,7 +11,7 @@ public class GenerateObjects : MonoBehaviour {
 	const float EARTH_MEAN_RADIUS = 6372.8e3f;
 
 	// Our location. Default location is somewhere in the middle of Trondheim
-	GPSLocation myLocation = new GPSLocation(63.430626, 10.392145);
+	public static GPSLocation myLocation = new GPSLocation(63.430626, 10.392145);
 	// The list containing the locations of each road object
 	List<GPSLocation> roadObjectList = new List<GPSLocation>();
 
@@ -82,7 +82,7 @@ public class GenerateObjects : MonoBehaviour {
 	//		GPSLocation startLocation -> The location where we are
 	//		GPSLocation endLocation -> The location where the object is
 	// Returns the distance between the startLocation and endLocation in meters (1 Unit = 1 meter for simplicity)
-	float Haversine(GPSLocation startLocation, GPSLocation endLocation) {
+	public static float Haversine(GPSLocation startLocation, GPSLocation endLocation) {
 		double dLat = (endLocation.latitude - startLocation.latitude) * Mathf.Deg2Rad;
 		double dLon = (endLocation.longitude - startLocation.longitude) * Mathf.Deg2Rad;
 		startLocation.latitude *= Mathf.Deg2Rad;
@@ -98,7 +98,7 @@ public class GenerateObjects : MonoBehaviour {
 	//		GPSLocation startLocation -> The location where we are
 	//		GPSLocation endLocation -> The location where the object is
 	// Returns the bearing from startLocation to endLocation in radians
-	float CalculateBearing(GPSLocation startLocation, GPSLocation endLocation) {
+	public static float CalculateBearing(GPSLocation startLocation, GPSLocation endLocation) {
 		float x = Mathf.Cos((float) startLocation.latitude * Mathf.Deg2Rad)
 				* Mathf.Sin((float) endLocation.latitude * Mathf.Deg2Rad)
 				- Mathf.Sin((float) startLocation.latitude * Mathf.Deg2Rad)
@@ -127,6 +127,7 @@ public class GenerateObjects : MonoBehaviour {
 			GameObject newGameObject = (GameObject) Instantiate(aGameObjectToGenerate, position, Quaternion.identity);
 			// Set the parent of the new GameObject to be us (so we dont have a huge list in root)
 			newGameObject.transform.parent = gameObject.transform;
+			newGameObject.GetComponent<RoadObjectManager>().roadObjectLocation = location;
 		}
 	}
 
