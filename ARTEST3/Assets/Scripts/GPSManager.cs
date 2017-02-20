@@ -20,13 +20,24 @@ public class GPSManager : MonoBehaviour {
 
 	// The Service that handles the GPS on the phone
 	private LocationService service;
-	private float gpsAccuracy = 1f;
-	private float gpsUpdateInterval = 5f;
+	public float gpsAccuracy = 5f;
+	public float gpsUpdateInterval = 5f;
+	public Slider accuracySlider;
+	public Slider intervalSlider;
+
 
 	public delegate void RoadObjectEventHandler();
 	public static event RoadObjectEventHandler onRoadObjectSpawn;
 
 	public Text debugText;
+
+	public void changeAccuracy() {
+		gpsAccuracy = accuracySlider.value;
+	}
+
+	public void changeInterval() {
+		gpsUpdateInterval = intervalSlider.value;
+	}
 
 	public static void updatePositions() {
 		if (onRoadObjectSpawn != null) {
