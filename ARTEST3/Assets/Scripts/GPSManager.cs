@@ -20,6 +20,8 @@ public class GPSManager : MonoBehaviour {
 
 	// The Service that handles the GPS on the phone
 	private LocationService service;
+	private float gpsAccuracy = 1f;
+	private float gpsUpdateInterval = 5f;
 
 	public delegate void RoadObjectEventHandler();
 	public static event RoadObjectEventHandler onRoadObjectSpawn;
@@ -58,7 +60,7 @@ public class GPSManager : MonoBehaviour {
 		// Start the service.
 		// First parameter is how accurate we want it in meters
 		// Second parameter is how far (in meters) we need to move before updating the location
-		service.Start(0f, 5f);
+		service.Start(gpsAccuracy, gpsUpdateInterval);
 		// A loop to wait for the service starts. Waits a maximum of maxWait seconds
 		while (service.status == LocationServiceStatus.Initializing && maxWait > 0) {
 			// Go out and wait one seconds before coming back in
