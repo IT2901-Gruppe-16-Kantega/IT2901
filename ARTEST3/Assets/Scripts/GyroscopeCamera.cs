@@ -9,7 +9,7 @@ public class GyroscopeCamera : MonoBehaviour {
 	private bool gyroIsSupported;
 
 	// For filtering gyro data
-	private const float lowPassFactor = 0.5f; // A float between 0.01f to 0.99f. Less means more dampening
+	private const float lowPassFactor = 0.8f; // A float between 0.01f to 0.99f. Less means more dampening
 
 	// Different rotations based on the phone's display mode
 	private readonly Quaternion baseIdentity = Quaternion.Euler(90, 0, 0);
