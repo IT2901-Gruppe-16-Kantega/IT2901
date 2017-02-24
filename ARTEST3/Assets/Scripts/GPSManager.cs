@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -105,7 +104,17 @@ public class GPSManager : MonoBehaviour {
 			updatePositions();
 		}
 		// Wait a second to update. Can be removed if wanted, but if it requests updates too quickly, something bad might happen.
-		yield return new WaitForSeconds(1);
+		// Comment to see if it is faster
+		// yield return new WaitForSeconds(1);
 		StartCoroutine(GetLocation());
+	}
+
+	void OnGUI() {
+		if (GUI.Button(new Rect(Screen.width - 10, Screen.height / 2 - 100, Screen.width / 10, Screen.height / 10), "Restart GPS")) {
+			StopAllCoroutines();
+			service.Stop();
+			service.Start(gpsAccuracy, gpsUpdateInterval);
+			StartCoroutine(GetLocation());
+		}
 	}
 }

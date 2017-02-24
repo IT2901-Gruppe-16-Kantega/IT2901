@@ -37,7 +37,7 @@ public class GenerateObjects : MonoBehaviour {
 
 	//The GameObject that is pressed
 	private GameObject target; 
-	private Boolean isMouseDrag;
+	private bool isMouseDrag;
 	private Vector3 screenPosition;
 	private Vector3 offset;
 
@@ -49,30 +49,6 @@ public class GenerateObjects : MonoBehaviour {
 		*/
 		gpsManager = GetComponent<GPSManager>();
 		StartCoroutine(waitForGPS());
-		///*
-		//Get the GPSManager script atteched to this same object. Gives you an error if this gameobject does not have the GPSManager script attached
-		//so make sure that it has it attached
-		//*/
-		//gpsManager = GetComponent<GPSManager>();
-		//// Update our location using whatever data the GPSManager got
-		//myLocation = new GPSLocation(gpsManager.myLatitude, gpsManager.myLongitude, gpsManager.myAltitude);
-		//// The query to fetch road signs
-		//string url = API_URL + "vegobjekter/96?inkluder=geometri&srid=4326&kartutsnitt=" +
-		//	(myLocation.longitude - deltaLatLong) + "," +
-		//	(myLocation.latitude - deltaLatLong) + "," +
-		//	(myLocation.longitude + deltaLatLong) + "," +
-		//	(myLocation.latitude + deltaLatLong);
-		//// A dictionary that contains the relevant headers we need to send to the API
-		//Dictionary<string, string> headers = new Dictionary<string, string>();
-		//// Want it in JSON format
-		//headers.Add("Accept", "application/vnd.vegvesen.nvdb-v2+json");
-		//// Make a WWW (similar to fetch)
-		//WWW www = new WWW(url, null, headers);
-		//print(url);
-		//// Start a coroutine that tries to get the data from the API
-		//// We dont want this as a method on it's own, because it will stall the Start() method
-		//StartCoroutine(WaitForRequest(www));
-		//Debug.Log(myLocation.latitude + " " + myLocation.longitude);
 	}
 
 	// Update is called once per frame
@@ -111,7 +87,7 @@ public class GenerateObjects : MonoBehaviour {
 	}
 
 	// The haversine formula calculates the distance between two gps locations by air (ignoring altitude).
-	// Paramters:
+	// Parameters:
 	//		GPSLocation startLocation -> The location where we are
 	//		GPSLocation endLocation -> The location where the object is
 	// Returns the distance between the startLocation and endLocation in meters (1 Unit = 1 meter for simplicity)
@@ -120,10 +96,14 @@ public class GenerateObjects : MonoBehaviour {
 		double dLon = (endLocation.longitude - startLocation.longitude) * Mathf.Deg2Rad;
 		startLocation.latitude *= Mathf.Deg2Rad;
 		endLocation.latitude *= Mathf.Deg2Rad;
-
-		float a = Mathf.Pow(Mathf.Sin((float) dLat / 2), 2) + Mathf.Pow(Mathf.Sin((float) dLon / 2), 2) * Mathf.Cos((float) startLocation.latitude) * Mathf.Cos((float) endLocation.latitude);
+		// a = Sin(dLat/2)^2 + Sin(dLon/2)^2 * Cos(sLat) * Cos(eLat)
+		float a = Mathf.Pow(Mathf.Sin((float) dLat / 2), 2) 
+				+ Mathf.Pow(Mathf.Sin((float) dLon / 2), 2) 
+				* Mathf.Cos((float) startLocation.latitude) 
+				* Mathf.Cos((float) endLocation.latitude);
 		float c = 2 * Mathf.Asin(Mathf.Sqrt(a));
-		return EARTH_MEAN_RADIUS * 2 * c;
+		float d = EARTH_MEAN_RADIUS * 2 * c;
+		return d;
 	}
 
 	// The formula that calculates the bearing when travelling from startLocation to endLocation
