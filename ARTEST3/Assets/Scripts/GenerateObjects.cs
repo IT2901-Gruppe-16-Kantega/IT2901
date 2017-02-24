@@ -34,6 +34,13 @@ public class GenerateObjects : MonoBehaviour {
 	[SerializeField]
 	private GPSManager gpsManager;
 
+
+	//The GameObject that is pressed
+	private GameObject target; 
+	private Boolean isMouseDrag;
+	private Vector3 screenPosition;
+	private Vector3 offset;
+
 	// Use this for initialization
 	void Start() {
 		/*
@@ -75,6 +82,32 @@ public class GenerateObjects : MonoBehaviour {
 			// Update our location
 			myLocation = new GPSLocation(gpsManager.myLatitude, gpsManager.myLongitude, gpsManager.myAltitude);
 		}
+
+		if (Input.GetMouseButtonDown(0)){
+			RaycastHit hitInfo;
+			target = ReturnClickedObject(out hitInfo);
+
+			if (target != null){
+				isMouseDrag = true;
+				Debug.Log("Old target position :" + target.transform.position);
+				//Convert world position to screen position.
+				screenPosition = Camera.main.WorldToScreenPoint(target.transform.position);
+				offset = target.transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenPosition.z));
+			}
+		}
+		if (Input.GetMouseButtonUp(0)){
+			isMouseDrag = false;
+			Debug.Log ("New target position :" + target.transform.position);
+		}
+		if (isMouseDrag){
+			//track mouse position.
+			Vector3 currentScreenSpace = new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenPosition.z);
+			//convert screen position to world position with offset changes.
+			Vector3 currentPosition = Camera.main.ScreenToWorldPoint(currentScreenSpace) + offset;
+			//It will update target gameobject's current postion.
+			target.transform.position = currentPosition;
+		}
+
 	}
 
 	// The haversine formula calculates the distance between two gps locations by air (ignoring altitude).
@@ -204,6 +237,17 @@ public class GenerateObjects : MonoBehaviour {
 		StartCoroutine(WaitForRequest(www));
 		Debug.Log(myLocation.latitude + " " + myLocation.longitude);
 	}
+
+	GameObject ReturnClickedObject(out RaycastHit hit){
+		GameObject target = null;
+		Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+		if (Physics.Raycast(ray.origin, ray.direction * 10, out hit)){
+			target = hit.collider.gameObject;
+		}
+		return target;
+	}
+
 
 	// The struct which contains latitude, longitude and altitude
 	public struct GPSLocation {
