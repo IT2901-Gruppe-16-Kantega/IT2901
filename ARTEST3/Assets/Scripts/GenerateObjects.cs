@@ -5,34 +5,24 @@ using UnityEngine;
 
 public class GenerateObjects : MonoBehaviour {
 
-	// The API base url
-	const string API_URL = "https://www.vegvesen.no/nvdb/api/v2/";
 	// The earth's mean radius in meters
 	const float EARTH_MEAN_RADIUS = 6372.8e3f;
 
 	// Our location. Default location is somewhere in the middle of Trondheim
-	public static GPSLocation myLocation = new GPSLocation(63.430626, 10.392145);
+	public static GPSManager.GPSLocation myLocation = new GPSManager.GPSLocation(63.430626, 10.392145);
 	// The list containing the locations of each road object
-	List<GPSLocation> roadObjectList = new List<GPSLocation>();
-
-	// The characters we dont want when parsing the geometry.wkt
-	char[] delimiterChars = { ' ', '(', ')' };
-
+	List<GPSManager.GPSLocation> roadObjectList = new List<GPSManager.GPSLocation>();
+	
 	// The object to instantiate (create) when placing the road objects
 	public GameObject aGameObjectToGenerate;
-
-	/* 
-	The deviation between the latitude and longitude of your current location
-	Used when querying the database to limit how many items we get. A bigger number
-	means that you extend the area around you.
-	*/
-	private float deltaLatLong = 0.002f;
 
 	// SerializeField makes the private field visible to the editor
 	// Currently, no other GameObject needs the GPSManager, so this is fine
 	// May want to make GPSManager static if all objects need access
 	[SerializeField]
 	private GPSManager gpsManager;
+	[SerializeField]
+	private APIWrapper apiWrapper;
 
 
 	//The GameObject that is pressed
@@ -48,7 +38,12 @@ public class GenerateObjects : MonoBehaviour {
 		so make sure that it has it attached
 		*/
 		gpsManager = GetComponent<GPSManager>();
-		StartCoroutine(waitForGPS());
+		apiWrapper = GetComponent<APIWrapper>();
+		// Update position
+		myLocation.latitude = gpsManager.myLatitude;
+		myLocation.longitude = gpsManager.myLongitude;
+		myLocation.altitude = gpsManager.myAltitude;
+		FetchObjects();
 	}
 
 	// Update is called once per frame
@@ -56,7 +51,7 @@ public class GenerateObjects : MonoBehaviour {
 		// If we have a gpsManager
 		if (gpsManager != null) {
 			// Update our location
-			myLocation = new GPSLocation(gpsManager.myLatitude, gpsManager.myLongitude, gpsManager.myAltitude);
+			myLocation = new GPSManager.GPSLocation(gpsManager.myLatitude, gpsManager.myLongitude, gpsManager.myAltitude);
 		}
 
 		if (Input.GetMouseButtonDown(0)){
@@ -86,12 +81,19 @@ public class GenerateObjects : MonoBehaviour {
 
 	}
 
+	private void FetchObjects() {
+		apiWrapper.FetchObjects(myLocation, objects => {
+			Debug.Log("Returned " + objects.Count + " objects");
+			this.roadObjectList = objects;
+			this.MakeObjectsFromLatLon();
+		});
+	}
 	// The haversine formula calculates the distance between two gps locations by air (ignoring altitude).
 	// Parameters:
 	//		GPSLocation startLocation -> The location where we are
 	//		GPSLocation endLocation -> The location where the object is
 	// Returns the distance between the startLocation and endLocation in meters (1 Unit = 1 meter for simplicity)
-	public static float Haversine(GPSLocation startLocation, GPSLocation endLocation) {
+	public static float Haversine(GPSManager.GPSLocation startLocation, GPSManager.GPSLocation endLocation) {
 		double dLat = (endLocation.latitude - startLocation.latitude) * Mathf.Deg2Rad;
 		double dLon = (endLocation.longitude - startLocation.longitude) * Mathf.Deg2Rad;
 		startLocation.latitude *= Mathf.Deg2Rad;
@@ -111,7 +113,7 @@ public class GenerateObjects : MonoBehaviour {
 	//		GPSLocation startLocation -> The location where we are
 	//		GPSLocation endLocation -> The location where the object is
 	// Returns the bearing from startLocation to endLocation in radians
-	public static float CalculateBearing(GPSLocation startLocation, GPSLocation endLocation) {
+	public static float CalculateBearing(GPSManager.GPSLocation startLocation, GPSManager.GPSLocation endLocation) {
 		float x = Mathf.Cos((float) startLocation.latitude * Mathf.Deg2Rad)
 				* Mathf.Sin((float) endLocation.latitude * Mathf.Deg2Rad)
 				- Mathf.Sin((float) startLocation.latitude * Mathf.Deg2Rad)
@@ -125,13 +127,13 @@ public class GenerateObjects : MonoBehaviour {
 	// Uses the locations in roadObjectList and instantiates objects
 	void MakeObjectsFromLatLon() {
 		// For each location in the list
-		foreach (GPSLocation location in roadObjectList) {
+		foreach (GPSManager.GPSLocation location in roadObjectList) {
 			// Create a new position where x, y, and z is 0
 			Vector3 position = Vector3.zero;
 			// Calculate the distance and bearing between us and the location
 			float distance = Haversine(myLocation, location);
 			float bearing = CalculateBearing(myLocation, location);
-			Debug.Log("Distance: " + distance + "\nBearing: " + bearing);
+			//Debug.Log("Distance: " + distance + "\nBearing: " + bearing);
 			// calculate the x and z offset between us and the location and update the x and z position
 			position.x = -Mathf.Cos(bearing) * distance;
 			position.z = Mathf.Sin(bearing) * distance;
@@ -144,80 +146,6 @@ public class GenerateObjects : MonoBehaviour {
 		}
 	}
 
-	// The coroutine that gets the data from the API
-	// Parameters:
-	//		WWW www -> The request URL with the correct headers
-	IEnumerator WaitForRequest(WWW www) {
-		// Request data from the API and come back when it's done
-		yield return www;
-		// If it has an error, print out the error
-		if (!string.IsNullOrEmpty(www.error)) {
-			Debug.Log("WWW Error: " + www.error);
-		} else {
-			// Else handle the data
-			// For debugging purposes
-			//Debug.Log(roadObjectList.Count);
-			Debug.Log("WWW Ok!: " + www.text);
-
-			// Make a new RootObject and parse the json data from the request
-			RootObject data = JsonUtility.FromJson<RootObject>(www.text);
-			// Go through each Objekter in the data.objekter (the road objects)
-			foreach (Objekter o in data.objekter) {
-				// For debugging purposes
-				Debug.Log(o.geometri.wkt);
-
-				// Split the object's wkt using the delimiterChars defined above
-				string[] wkt = o.geometri.wkt.Split(delimiterChars);
-				// Make a new GPSLocation using the values from the splitted text
-				// TODO Currently only supports POINT because POINT has 3 points of data
-				GPSLocation oLocation;
-				if (wkt.Length == 6) {
-					oLocation = new GPSLocation(double.Parse(wkt[2]), double.Parse(wkt[3]), double.Parse(wkt[4]));
-				} else {
-					oLocation = new GPSLocation(double.Parse(wkt[2]), double.Parse(wkt[3]));
-				}
-
-				// For debugging purposes
-				//Debug.Log(oLocation.latitude + " - " + oLocation.longitude + " - " + oLocation.altitude);
-
-				// Add the location to our roadObjectList
-				roadObjectList.Add(oLocation);
-			}
-			// For debuggin purposes
-			//Debug.Log(roadObjectList.Count);
-
-			// Run the method that instantiates the GameObjects from the locations
-			MakeObjectsFromLatLon();
-		}
-	}
-
-	IEnumerator waitForGPS() {
-		float maxWait = 10f;
-		while (!gpsManager.initialPositionUpdated && maxWait > 0) {
-			yield return new WaitForSeconds(1);
-			maxWait--;
-		}
-		// Update our location using whatever data the GPSManager got
-		myLocation = new GPSLocation(gpsManager.myLatitude, gpsManager.myLongitude, gpsManager.myAltitude);
-		// The query to fetch road signs
-		string url = API_URL + "vegobjekter/96?inkluder=geometri&srid=4326&kartutsnitt=" +
-			(myLocation.longitude - deltaLatLong) + "," +
-			(myLocation.latitude - deltaLatLong) + "," +
-			(myLocation.longitude + deltaLatLong) + "," +
-			(myLocation.latitude + deltaLatLong);
-		// A dictionary that contains the relevant headers we need to send to the API
-		Dictionary<string, string> headers = new Dictionary<string, string>();
-		// Want it in JSON format
-		headers.Add("Accept", "application/vnd.vegvesen.nvdb-v2+json");
-		// Make a WWW (similar to fetch)
-		WWW www = new WWW(url, null, headers);
-		print(url);
-		// Start a coroutine that tries to get the data from the API
-		// We dont want this as a method on it's own, because it will stall the Start() method
-		StartCoroutine(WaitForRequest(www));
-		Debug.Log(myLocation.latitude + " " + myLocation.longitude);
-	}
-
 	GameObject ReturnClickedObject(out RaycastHit hit){
 		GameObject target = null;
 		Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -227,61 +155,4 @@ public class GenerateObjects : MonoBehaviour {
 		}
 		return target;
 	}
-
-
-	// The struct which contains latitude, longitude and altitude
-	public struct GPSLocation {
-		public double latitude;
-		public double longitude;
-		public double altitude;
-		// Constructor for only latitude and longitude
-		public GPSLocation(double lat, double lon) {
-			this.latitude = lat;
-			this.longitude = lon;
-			this.altitude = 0;
-		}
-		// Constructor for latitude, longitude, and altitude
-		public GPSLocation(double lat, double lon, double alt) {
-			this.latitude = lat;
-			this.longitude = lon;
-			this.altitude = alt;
-		}
-	}
-}
-
-// The objects that exist in the JSON data returned from the API
-// This only works for road signs (I think)
-// TODO find a way to parse all types of data from the API instead of just this.
-// As it is right now, it works.
-[Serializable]
-public class Geometri {
-	public string wkt;
-	public int srid;
-	public bool egengeometri;
-}
-
-[Serializable]
-public class Objekter {
-	public int id;
-	public string href;
-	public Geometri geometri;
-}
-
-[Serializable]
-public class Neste {
-	public string start;
-	public string href;
-}
-
-[Serializable]
-public class Metadata {
-	public int antall;
-	public int returnert;
-	public Neste neste;
-}
-
-[Serializable]
-public class RootObject {
-	public List<Objekter> objekter;
-	public Metadata metadata;
 }

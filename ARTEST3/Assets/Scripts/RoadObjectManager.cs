@@ -2,7 +2,7 @@
 
 public class RoadObjectManager : MonoBehaviour {
 
-	public GenerateObjects.GPSLocation roadObjectLocation;
+	public GPSManager.GPSLocation roadObjectLocation;
 
 	public float dampening = 0.05f;
 	private float distance;
