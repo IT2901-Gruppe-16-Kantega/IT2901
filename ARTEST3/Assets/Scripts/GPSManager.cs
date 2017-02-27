@@ -44,6 +44,7 @@ public class GPSManager : MonoBehaviour {
 
 	public static void updatePositions() {
 		if (onRoadObjectSpawn != null) {
+			Debug.Log("Updating Positions of Signs...");
 			onRoadObjectSpawn();
 		}
 	}
@@ -63,7 +64,7 @@ public class GPSManager : MonoBehaviour {
 			// Second parameter is how far (in meters) we need to move before updating the location
 			service.Start(gpsAccuracy, gpsUpdateInterval);
 			// Start a coroutine to fetch our location. Because it might take a while, we run it as a coroutine. Running it as is will stall Start()
-			StartCoroutine(GetLocation());
+			StartCoroutine(StartLocation());
 		}
 	}
 
@@ -76,8 +77,7 @@ public class GPSManager : MonoBehaviour {
 		//}
 	}
 
-	// The coroutine that gets our current GPS position
-	IEnumerator GetLocation() {
+	IEnumerator StartLocation() {
 		// A loop to wait for the service starts. Waits a maximum of maxWait seconds
 		while (service.status == LocationServiceStatus.Initializing && maxWait > 0) {
 			// Go out and wait one seconds before coming back in
@@ -85,11 +85,12 @@ public class GPSManager : MonoBehaviour {
 			maxWait--;
 		}
 
-		// If we timed out, stop this coroutine forever
+		// If we timed out
 		if (maxWait < 1) {
 			debugText.text = ("Timed out");
 			yield return new WaitForSeconds(1);
 		}
+
 		// If the service failed, stop this coroutine forever
 		if (service.status == LocationServiceStatus.Failed) {
 			debugText.text = ("Unable to determine device location");
@@ -97,15 +98,22 @@ public class GPSManager : MonoBehaviour {
 		} else {
 			debugText.text = ("Eyyyyy");
 			// Otherwise, update our location
-			myLatitude = service.lastData.latitude;
-			myLongitude = service.lastData.longitude;
-			myAltitude = service.lastData.altitude;
-			initialPositionUpdated = true;
-			updatePositions();
+			StartCoroutine(GetLocation());
 		}
+	}
+
+	// The coroutine that gets our current GPS position
+	IEnumerator GetLocation() {
+		// Otherwise, update our location
+		myLatitude = service.lastData.latitude;
+		myLongitude = service.lastData.longitude;
+		myAltitude = service.lastData.altitude;
+		debugText.text = myLatitude + ", " + myLongitude;
+		initialPositionUpdated = true;
+		updatePositions();
 		// Wait a second to update. Can be removed if wanted, but if it requests updates too quickly, something bad might happen.
 		// Comment to see if it is faster
-		// yield return new WaitForSeconds(1);
+		yield return new WaitForSeconds(0.5f);
 		StartCoroutine(GetLocation());
 	}
 
@@ -137,11 +145,16 @@ public class GPSManager : MonoBehaviour {
 	}
 
 	void OnGUI() {
-		if (GUI.Button(new Rect(Screen.width - 10, Screen.height / 2 - 100, Screen.width / 10, Screen.height / 10), "Restart GPS")) {
-			StopAllCoroutines();
+		if (GUI.Button(new Rect(Screen.width * 0.9f - 10, Screen.height - 150, Screen.width / 10, Screen.height / 20), "Restart GPS")) {
+			StopCoroutine(StartLocation());
+			StopCoroutine(GetLocation());
 			service.Stop();
 			service.Start(gpsAccuracy, gpsUpdateInterval);
-			StartCoroutine(GetLocation());
+			StartCoroutine(StartLocation());
 		}
+
+		//if (GUI.Button(new Rect(Screen.width * 0.9f - 10, Screen.height - 350, Screen.width / 10, Screen.height / 20), "Manual update positions")) {
+		//	updatePositions();
+		//}
 	}
 }

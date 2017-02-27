@@ -3,14 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class APIWrapper : MonoBehaviour {
 
 	// The API base url
 	const string API_URL = "https://www.vegvesen.no/nvdb/api/v2/";
 
-	// The characters we dont want when parsing the geometry.wkt
-	char[] delimiterChars = { ' ', '(', ')' };
+	// We want numbers and periods, so this regex searches for the exact opposite to use as delimiters
 	string regexPattern = @"[^0-9.]+";
 
 	/* 
@@ -18,9 +18,11 @@ public class APIWrapper : MonoBehaviour {
 	Used when querying the database to limit how many items we get. A bigger number
 	means that you extend the area around you. Because of how coordinates work,
 	to get a square, longitude needs to have a bigger delta.
-    */
-	private float deltaLat = 0.002f;
-	private float deltaLong = 0.003f;
+	*/
+	private float deltaLat = 0.001f;
+	private float deltaLong = 0.002f;
+
+	public Text debugText;
 
 	private Dictionary<string, string> CreateHeaders() {
 		Dictionary<string, string> headers = new Dictionary<string, string>();
@@ -122,7 +124,7 @@ public class APIWrapper : MonoBehaviour {
 
 				// For debugging purposes
 				//Debug.Log(oLocation.latitude + " - " + oLocation.longitude + " - " + oLocation.altitude);
-				Debug.Log(oLocation.ToString());
+				//Debug.Log(oLocation.ToString());
 				// Add the location to our roadObjectList
 				roadObjectList.Add(oLocation);
 			}
@@ -130,6 +132,7 @@ public class APIWrapper : MonoBehaviour {
 
 			// For debuggin purposes
 			//Debug.Log(roadObjectList.Count);
+			debugText.text = roadObjectList.Count + " objects";
 		}
 	}
 

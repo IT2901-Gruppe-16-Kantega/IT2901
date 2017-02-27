@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -14,7 +13,9 @@ public class GenerateObjects : MonoBehaviour {
 	List<GPSManager.GPSLocation> roadObjectList = new List<GPSManager.GPSLocation>();
 	
 	// The object to instantiate (create) when placing the road objects
-	public GameObject aGameObjectToGenerate;
+	public GameObject blueSign;
+	public GameObject redSign;
+	public GameObject redTriangle;
 
 	// SerializeField makes the private field visible to the editor
 	// Currently, no other GameObject needs the GPSManager, so this is fine
@@ -24,13 +25,6 @@ public class GenerateObjects : MonoBehaviour {
 	[SerializeField]
 	private APIWrapper apiWrapper;
 
-
-	//The GameObject that is pressed
-	private GameObject target; 
-	private bool isMouseDrag;
-	private Vector3 screenPosition;
-	private Vector3 offset;
-
 	// Use this for initialization
 	void Start() {
 		/*
@@ -39,11 +33,12 @@ public class GenerateObjects : MonoBehaviour {
 		*/
 		gpsManager = GetComponent<GPSManager>();
 		apiWrapper = GetComponent<APIWrapper>();
+
 		// Update position
 		myLocation.latitude = gpsManager.myLatitude;
 		myLocation.longitude = gpsManager.myLongitude;
 		myLocation.altitude = gpsManager.myAltitude;
-		FetchObjects();
+		StartCoroutine(FetchObjects());
 	}
 
 	// Update is called once per frame
@@ -53,37 +48,11 @@ public class GenerateObjects : MonoBehaviour {
 			// Update our location
 			myLocation = new GPSManager.GPSLocation(gpsManager.myLatitude, gpsManager.myLongitude, gpsManager.myAltitude);
 		}
-
-		if (Input.GetMouseButtonDown(0)){
-			RaycastHit hitInfo;
-			target = ReturnClickedObject(out hitInfo);
-
-			if (target != null){
-				isMouseDrag = true;
-				Debug.Log("Old target position :" + target.transform.position);
-				//Convert world position to screen position.
-				screenPosition = Camera.main.WorldToScreenPoint(target.transform.position);
-				offset = target.transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenPosition.z));
-			}
-		}
-		if (Input.GetMouseButtonUp(0)){
-			isMouseDrag = false;
-			Debug.Log ("New target position :" + target.transform.position);
-		}
-		if (isMouseDrag){
-			//track mouse position.
-			Vector3 currentScreenSpace = new Vector3(Input.mousePosition.x, Input.mousePosition.y, screenPosition.z);
-			//convert screen position to world position with offset changes.
-			Vector3 currentPosition = Camera.main.ScreenToWorldPoint(currentScreenSpace) + offset;
-			//It will update target gameobject's current postion.
-			target.transform.position = currentPosition;
-		}
-
 	}
 
-	private void FetchObjects() {
+	IEnumerator FetchObjects() {
+		yield return new WaitForSeconds(10);
 		apiWrapper.FetchObjects(myLocation, objects => {
-			Debug.Log("Returned " + objects.Count + " objects");
 			this.roadObjectList = objects;
 			this.MakeObjectsFromLatLon();
 		});
@@ -138,21 +107,18 @@ public class GenerateObjects : MonoBehaviour {
 			position.x = -Mathf.Cos(bearing) * distance;
 			position.z = Mathf.Sin(bearing) * distance;
 
+
+			// MAKE SIGNS HERE
 			// Instantiate a new GameObject on that location relative to us
-			GameObject newGameObject = (GameObject) Instantiate(aGameObjectToGenerate, position, Quaternion.identity);
+			GameObject newGameObject = (GameObject) Instantiate(blueSign, position, Quaternion.identity);
+			
+			
+			
+			
 			// Set the parent of the new GameObject to be us (so we dont have a huge list in root)
 			newGameObject.transform.parent = gameObject.transform;
 			newGameObject.GetComponent<RoadObjectManager>().roadObjectLocation = location;
+			newGameObject.GetComponent<RoadObjectManager>().updateLocation();
 		}
-	}
-
-	GameObject ReturnClickedObject(out RaycastHit hit){
-		GameObject target = null;
-		Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-
-		if (Physics.Raycast(ray.origin, ray.direction * 10, out hit)){
-			target = hit.collider.gameObject;
-		}
-		return target;
 	}
 }
