@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,7 +9,7 @@ public class GPSManager : MonoBehaviour {
 	// How many seconds to wait max
 	private int maxWait = 10;
 
-	// Our defaukt latitude, longitude, and altitude
+	// Our default latitude, longitude, and altitude
 	// Default is somewhere in the middle of Trondheim
 	public float myLatitude = 63.4238907f;
 	public float myLongitude = 10.3990959f;
@@ -105,7 +104,44 @@ public class GPSManager : MonoBehaviour {
 			updatePositions();
 		}
 		// Wait a second to update. Can be removed if wanted, but if it requests updates too quickly, something bad might happen.
-		yield return new WaitForSeconds(1);
+		// Comment to see if it is faster
+		// yield return new WaitForSeconds(1);
 		StartCoroutine(GetLocation());
+	}
+
+	// The struct which contains latitude, longitude and altitude
+	public struct GPSLocation {
+		public double latitude;
+		public double longitude;
+		public double altitude;
+		public Objekt obj;
+
+		// Constructor for only latitude and longitude
+		public GPSLocation(double lat, double lon) {
+			this.latitude = lat;
+			this.longitude = lon;
+			this.altitude = 0;
+			this.obj = null;
+		}
+		// Constructor for latitude, longitude, and altitude
+		public GPSLocation(double lat, double lon, double alt) {
+			this.latitude = lat;
+			this.longitude = lon;
+			this.altitude = alt;
+			this.obj = null;
+		}
+
+		public override string ToString() {
+			return latitude + ", " + longitude + ", " + altitude;
+		}
+	}
+
+	void OnGUI() {
+		if (GUI.Button(new Rect(Screen.width - 10, Screen.height / 2 - 100, Screen.width / 10, Screen.height / 10), "Restart GPS")) {
+			StopAllCoroutines();
+			service.Stop();
+			service.Start(gpsAccuracy, gpsUpdateInterval);
+			StartCoroutine(GetLocation());
+		}
 	}
 }
