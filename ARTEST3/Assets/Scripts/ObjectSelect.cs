@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class ObjectSelect : MonoBehaviour {
 
@@ -12,6 +11,7 @@ public class ObjectSelect : MonoBehaviour {
 	private bool isMouseDrag;
 	private Vector3 screenPosition;
 	private Vector3 offset;
+
 
 	// Use this for initialization
 	void Start() {
@@ -37,22 +37,29 @@ public class ObjectSelect : MonoBehaviour {
 		if (Input.GetMouseButtonUp(0)) {
 			isMouseDrag = false;
 			if (target != null) {
+				RoadObjectManager rom = target.GetComponent<RoadObjectManager>();
 				Debug.Log("New target position :" + target.transform.position);
 				// Use the Reverse Haversine formula to update the latitude and longitude
 				// The distance to the target is the magnitude of the targets position vector since we are at 0,0,0 we dont need to subtract it to get the direction
 				double distance = target.transform.position.magnitude;
+				//distance = System.Math.Round(distance, 10);
 				// The bearing is the arcsin of the targets normalized x value plus PI / 2 (because 
-				double bearing = Mathf.Asin(target.transform.position.x / (float) distance) + Mathf.PI / 2;
-				Debug.Log(target.GetComponent<RoadObjectManager>().roadObjectLocation);
-				Debug.Log(distance + " | " + target.GetComponent<RoadObjectManager>().distance);
-				Debug.Log(bearing + " | " + target.GetComponent<RoadObjectManager>().bearing);
-				// GenerateObjects.ReverseHaversine(GenerateObjects.myLocation, distance, bearing, target.GetComponent<RoadObjectManager>().roadObjectLocation, out target.GetComponent<RoadObjectManager>().roadObjectLocation);
-				//GenerateObjects.ReverseHaversine(GenerateObjects.myLocation, distance, bearing, target.GetComponent<RoadObjectManager>().roadObjectLocation, out target.GetComponent<RoadObjectManager>().roadObjectLocation);
-				Debug.Log(target.GetComponent<RoadObjectManager>().roadObjectLocation);
-				Debug.Log(target.GetComponent<RoadObjectManager>().distance);
-				Debug.Log(target.GetComponent<RoadObjectManager>().bearing);
+				double bearing = Mathf.Asin(target.transform.position.x / (float)distance) + Mathf.PI / 2;
+
+				rom.deltaDistance = distance - rom.distance;
+				rom.deltaBearing = bearing - rom.bearing;
+				rom.hasBeenMoved = rom.deltaDistance != 0 || rom.deltaBearing != 0;
+
+				//Debug.Log(rom.roadObjectLocation);
+				//Debug.Log("DISTANCE: " + distance + " | " + rom.distance + " | " + distance / rom.distance);
+				//Debug.Log("BEARING:  " + bearing + " | " + rom.bearing + " | " + bearing / rom.bearing);
+				//GPSManager.GPSLocation newLocation = GenerateObjects.ReverseHaversine(GenerateObjects.myLocation, distance, bearing, rom.roadObjectLocation);
+				//GPSManager.GPSLocation oldLocation  = rom.roadObjectLocation;
+				//Debug.Log(oldLocation);
+				//Debug.Log(newLocation);
+				//Debug.Log(newLocation.latitude / oldLocation.latitude + " | " + newLocation.longitude / oldLocation.longitude);
+				//rom.roadObjectLocation = newLocation;
 			}
-			//GPSManager.updatePositions();
 		}
 		if (isMouseDrag && target != null) {
 			// Track the mouse pointer / finger position in the x and y axis, using the depth of the target

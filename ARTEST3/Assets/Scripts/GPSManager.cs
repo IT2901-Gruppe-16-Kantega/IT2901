@@ -11,12 +11,13 @@ public class GPSManager : MonoBehaviour {
 	// How many tries before giving up starting location
 	private int maxTries = 3;
 	private int tries = 0;
+	[Range(0.01f, 1)]
+	public float dampening = 0.8f;
 
 	// Our default latitude, longitude, and altitude
 	// Default is somewhere in the middle of Trondheim
-	public float myLatitude = 63.4238907f;
-	public float myLongitude = 10.3990959f;
-	public float myAltitude = 10f;
+	public static GPSLocation myLocation = new GPSLocation(63.430626, 10.392145, 10);
+	private GPSLocation oldLocation = new GPSLocation();
 	[HideInInspector]
 	public bool initialPositionUpdated = false;
 
@@ -29,10 +30,6 @@ public class GPSManager : MonoBehaviour {
 	public Text accuracyText;
 	public Text intervalText;
 
-
-	public delegate void RoadObjectEventHandler();
-	public static event RoadObjectEventHandler onRoadObjectSpawn;
-
 	public Text debugText;
 
 	public void changeAccuracy() {
@@ -43,13 +40,6 @@ public class GPSManager : MonoBehaviour {
 	public void changeInterval() {
 		gpsUpdateInterval = intervalSlider.value;
 		intervalText.text = intervalSlider.value.ToString();
-	}
-
-	public static void updatePositions() {
-		if (onRoadObjectSpawn != null) {
-			Debug.Log("Updating Positions of Signs...");
-			onRoadObjectSpawn();
-		}
 	}
 
 	void Start() {
@@ -89,7 +79,7 @@ public class GPSManager : MonoBehaviour {
 		if (service.status == LocationServiceStatus.Failed) {
 			debugText.text = ("Unable to determine device location");
 			yield return new WaitForSeconds(1);
-			if(tries < maxTries) {
+			if (tries < maxTries) {
 				tries++;
 				StartCoroutine(StartLocation());
 			}
@@ -104,19 +94,30 @@ public class GPSManager : MonoBehaviour {
 	// The coroutine that gets our current GPS position
 	IEnumerator GetLocation() {
 		// Otherwise, update our location
-		myLatitude = service.lastData.latitude;
-		myLongitude = service.lastData.longitude;
-		myAltitude = service.lastData.altitude;
-		debugText.text = myLatitude + ", " + myLongitude;
+		oldLocation = myLocation;
+		myLocation = new GPSLocation(service.lastData.latitude, service.lastData.longitude, service.lastData.altitude);
+		if (!initialPositionUpdated) oldLocation = myLocation;
+		double distance = GenerateObjects.Haversine(oldLocation, myLocation);
+		double bearing = GenerateObjects.CalculateBearing(oldLocation, myLocation);
+		transform.position =
+			Vector3.Lerp(transform.position,
+				new Vector3(
+					(float)(-System.Math.Cos(bearing) * distance),
+					0,
+					(float)(System.Math.Sin(bearing) * distance)
+				), dampening);
+
+		debugText.text = myLocation.latitude + ", " + myLocation.longitude;
+		debugText.text += "\n" + oldLocation.latitude + ", " + oldLocation.longitude;
 		initialPositionUpdated = true;
-		updatePositions();
 		// Wait a second to update. Can be removed if wanted, but if it requests updates too quickly, something bad might happen.
 		// Comment to see if it is faster
 		yield return new WaitForSeconds(0.5f);
-		StartCoroutine(GetLocation());
+		//StartCoroutine(GetLocation());
 	}
 
 	// The struct which contains latitude, longitude and altitude
+	[System.Serializable]
 	public struct GPSLocation {
 		public double latitude;
 		public double longitude;
@@ -136,6 +137,13 @@ public class GPSManager : MonoBehaviour {
 			this.longitude = lon;
 			this.altitude = alt;
 			this.obj = null;
+		}
+
+		public GPSLocation(GPSLocation other) {
+			latitude = other.latitude;
+			longitude = other.longitude;
+			altitude = other.altitude;
+			obj = other.obj;
 		}
 
 		public override string ToString() {

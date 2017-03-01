@@ -14,27 +14,32 @@ public class CameraBackground : MonoBehaviour {
 
 	// Use this for initialization
 	void Start() {
-		// Get the components that are attached to this GameObject
-		arf = GetComponent<AspectRatioFitter>();
-		image = GetComponent<RawImage>();
+		if (WebCamTexture.devices.Length != 0) {
+			// Get the components that are attached to this GameObject
+			arf = GetComponent<AspectRatioFitter>();
+			image = GetComponent<RawImage>();
 
-		// Make a new WebCamTexture that matches our screen width and height
-		// Divide by 4 to reduce the quality to increase the framerate. Really important for Android phones. iOS devices are magically good at this somehow
-		// Can maybe use 480x640 instead?
-		#if UNITY_ANDROID
-		phoneCamera = new WebCamTexture(Screen.width / 4, Screen.height / 4);
-		#else
-		phoneCamera = new WebCamTexture(Screen.width, Screen.height);
-		#endif
-		// Set the texture of the RawImage to the WebCamTexture
-		image.texture = phoneCamera;
-		// Turn on the camera
-		//phoneCamera.requestedFPS = 30;
-		phoneCamera.Play();
+			// Make a new WebCamTexture that matches our screen width and height
+			// Divide by 4 to reduce the quality to increase the framerate. Really important for Android phones. iOS devices are magically good at this somehow
+			// Can maybe use 480x640 instead?
+			#if UNITY_ANDROID
+				phoneCamera = new WebCamTexture(Screen.width / 4, Screen.height / 4);
+			#else
+				phoneCamera = new WebCamTexture(Screen.width, Screen.height);
+			#endif
+			// Set the texture of the RawImage to the WebCamTexture
+			image.texture = phoneCamera;
+			// Turn on the camera
+			//phoneCamera.requestedFPS = 30;
+			phoneCamera.Play();
+		}
 	}
 
 	// Update is called once per frame
 	void Update() {
+		if (WebCamTexture.devices.Length == 0) {
+			return;
+		}
 		// If the camera rotation is wrong, fix it
 		float cwNeeded = -phoneCamera.videoRotationAngle;
 		if (phoneCamera.videoVerticallyMirrored)

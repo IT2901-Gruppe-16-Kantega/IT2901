@@ -19,8 +19,8 @@ public class APIWrapper : MonoBehaviour {
 	means that you extend the area around you. Because of how coordinates work,
 	to get a square, longitude needs to have a bigger delta.
 	*/
-	private float deltaLat = 0.001f;
-	private float deltaLong = 0.002f;
+	private float deltaLat = 0.002f;
+	private float deltaLong = 0.003f;
 
 	public Text debugText;
 
@@ -102,7 +102,7 @@ public class APIWrapper : MonoBehaviour {
 				string[] wkt = Regex.Split(obj.geometri.wkt, regexPattern);
 				List<double> points = new List<double>();
 				foreach (string s in wkt) {
-					if(!String.IsNullOrEmpty(s)) {
+					if (!String.IsNullOrEmpty(s)) {
 						points.Add(double.Parse(s));
 					}
 				}
@@ -110,14 +110,14 @@ public class APIWrapper : MonoBehaviour {
 				// Make a new GPSLocation using the values from the splitted text
 				// TODO Currently only supports POINT because POINT has 3 points of data
 				GPSManager.GPSLocation oLocation;
-				if(points.Count == 3) {
+				if (points.Count == 3) {
 					oLocation = new GPSManager.GPSLocation(points[0], points[1], points[2]);
 				} else if (points.Count == 2) {
 					oLocation = new GPSManager.GPSLocation(points[0], points[1]);
 				} else {
-					oLocation = new GPSManager.GPSLocation(points[0], points[1], points[2]);
 					// MULTILINE???????
 					// ?
+					oLocation = new GPSManager.GPSLocation(points[0], points[1], points[2]);
 				}
 				oLocation.obj = obj;
 
@@ -130,7 +130,7 @@ public class APIWrapper : MonoBehaviour {
 			callback(roadObjectList);
 
 			// For debuggin purposes
-			//Debug.Log(roadObjectList.Count);
+			//			Debug.Log(roadObjectList.Count);
 			debugText.text = roadObjectList.Count + " objects";
 		}
 	}
