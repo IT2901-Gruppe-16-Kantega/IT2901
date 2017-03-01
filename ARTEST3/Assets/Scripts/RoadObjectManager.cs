@@ -11,9 +11,10 @@ public class RoadObjectManager : MonoBehaviour {
 	public Renderer plateRenderer;
 	public TextMesh distanceText;
 
-
-	private float distance;
-	private float bearing;
+	[HideInInspector]
+	public double distance;
+	[HideInInspector]
+	public double bearing;
 
 	// Use this for initialization
 	void Start() {
@@ -22,8 +23,11 @@ public class RoadObjectManager : MonoBehaviour {
 	}
 
 	void Update() {
-	// I'm Mr. Meeseeks, look at me!
-		transform.LookAt(new Vector3(transform.position.x - Camera.main.transform.position.x, transform.position.y, transform.position.z - Camera.main.transform.position.z));
+		// I'm Mr. Meeseeks, look at me!
+		transform.LookAt(new Vector3(Camera.main.transform.position.x,
+									0,
+									Camera.main.transform.position.z));
+		//updateLocation();
 	}
 
 	void Destroy() {
@@ -34,12 +38,12 @@ public class RoadObjectManager : MonoBehaviour {
 	public void updateLocation() {
 		distance = GenerateObjects.Haversine(GenerateObjects.myLocation, roadObjectLocation);
 		//if (Mathf.Abs(distance) > distanceThreshold) {
-		//	//if (gameObject.activeSelf) gameObject.SetActive(false);
+		//	if (gameObject.activeSelf) gameObject.SetActive(false);
 		//} else {
-			//if (!gameObject.activeSelf) gameObject.SetActive(true);
-			distanceText.text = distance + " m";
-			bearing = GenerateObjects.CalculateBearing(GenerateObjects.myLocation, roadObjectLocation);
-			transform.position = Vector3.Lerp(transform.position, new Vector3(-Mathf.Cos(bearing) * distance, 0, Mathf.Sin(bearing) * distance), dampening);
+		//	if (!gameObject.activeSelf) gameObject.SetActive(true);
+		distanceText.text = distance.ToString("F2") + " m";
+		bearing = GenerateObjects.CalculateBearing(GenerateObjects.myLocation, roadObjectLocation);
+		transform.position = Vector3.Lerp(transform.position, new Vector3(-Mathf.Cos((float) bearing) * (float) distance, 0, Mathf.Sin((float) bearing) * (float) distance), dampening);
 		//}
 	}
 

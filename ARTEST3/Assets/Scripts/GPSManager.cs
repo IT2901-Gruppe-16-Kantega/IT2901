@@ -8,6 +8,9 @@ Handles the GPS on the phone
 public class GPSManager : MonoBehaviour {
 	// How many seconds to wait max
 	private int maxWait = 10;
+	// How many tries before giving up starting location
+	private int maxTries = 3;
+	private int tries = 0;
 
 	// Our default latitude, longitude, and altitude
 	// Default is somewhere in the middle of Trondheim
@@ -68,15 +71,6 @@ public class GPSManager : MonoBehaviour {
 		}
 	}
 
-	void Update() {
-		// If we have a service, update our position
-		//if (service.status == LocationServiceStatus.Running) {
-		//	myLatitude = service.lastData.latitude;
-		//	myLongitude = service.lastData.longitude;
-		//	myAltitude = service.lastData.altitude;
-		//}
-	}
-
 	IEnumerator StartLocation() {
 		// A loop to wait for the service starts. Waits a maximum of maxWait seconds
 		while (service.status == LocationServiceStatus.Initializing && maxWait > 0) {
@@ -91,10 +85,15 @@ public class GPSManager : MonoBehaviour {
 			yield return new WaitForSeconds(1);
 		}
 
-		// If the service failed, stop this coroutine forever
+		// If the service failed, try again
 		if (service.status == LocationServiceStatus.Failed) {
 			debugText.text = ("Unable to determine device location");
 			yield return new WaitForSeconds(1);
+			if(tries < maxTries) {
+				tries++;
+				StartCoroutine(StartLocation());
+			}
+
 		} else {
 			debugText.text = ("Eyyyyy");
 			// Otherwise, update our location
@@ -152,9 +151,5 @@ public class GPSManager : MonoBehaviour {
 			service.Start(gpsAccuracy, gpsUpdateInterval);
 			StartCoroutine(StartLocation());
 		}
-
-		//if (GUI.Button(new Rect(Screen.width * 0.9f - 10, Screen.height - 350, Screen.width / 10, Screen.height / 20), "Manual update positions")) {
-		//	updatePositions();
-		//}
 	}
 }

@@ -45,7 +45,6 @@ public class APIWrapper : MonoBehaviour {
 			(latitude - deltaLat) + "," +
 			(longitude + deltaLong) + "," +
 			(latitude + deltaLat);
-
 		Debug.Log(url);
 
 		// A dictionary that contains the relevant headers we need to send to the API
