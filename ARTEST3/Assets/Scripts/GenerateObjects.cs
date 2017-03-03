@@ -146,6 +146,7 @@ public class GenerateObjects : MonoBehaviour {
 			position.x = (float)(-System.Math.Cos(bearing) * distance);
 			position.z = (float)(System.Math.Sin(bearing) * distance);
 
+			Debug.Log(location.obj.egenskaper);
 
 			// MAKE SIGNS HERE
 			// Instantiate a new GameObject on that location relative to us

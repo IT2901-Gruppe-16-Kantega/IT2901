@@ -1,6 +1,6 @@
 fileFormatVersion: 2
-guid: 117c024f101ccdf46843b650ff39157f
-timeCreated: 1488066476
+guid: c74d0975489f85641a77a78bffdb2c77
+timeCreated: 1488572664
 licenseType: Free
 ModelImporter:
   serializedVersion: 19
@@ -10,7 +10,6 @@ ModelImporter:
     2300000: //RootNode
     3300000: //RootNode
     4300000: Triangle
-    9500000: //RootNode
   materials:
     importMaterials: 1
     materialName: 0
@@ -35,7 +34,7 @@ ModelImporter:
     isReadable: 1
   meshes:
     lODScreenPercentages: []
-    globalScale: 0.15
+    globalScale: 6
     meshCompression: 0
     addColliders: 0
     importBlendShapes: 1
@@ -69,7 +68,7 @@ ModelImporter:
     rootMotionBoneName: 
     hasTranslationDoF: 0
   lastHumanDescriptionAvatarSource: {instanceID: 0}
-  animationType: 2
+  animationType: 0
   humanoidOversampling: 1
   additionalBone: 0
   userData: 
