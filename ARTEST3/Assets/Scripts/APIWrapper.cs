@@ -3,14 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class APIWrapper : MonoBehaviour {
 
 	// The API base url
 	const string API_URL = "https://www.vegvesen.no/nvdb/api/v2/";
 
-	// The characters we dont want when parsing the geometry.wkt
-	char[] delimiterChars = { ' ', '(', ')' };
+	// We want numbers and periods, so this regex searches for the exact opposite to use as delimiters
 	string regexPattern = @"[^0-9.]+";
 
 	/* 
@@ -18,9 +18,11 @@ public class APIWrapper : MonoBehaviour {
 	Used when querying the database to limit how many items we get. A bigger number
 	means that you extend the area around you. Because of how coordinates work,
 	to get a square, longitude needs to have a bigger delta.
-    */
+	*/
 	private float deltaLat = 0.002f;
 	private float deltaLong = 0.003f;
+
+	public Text debugText;
 
 	private Dictionary<string, string> CreateHeaders() {
 		Dictionary<string, string> headers = new Dictionary<string, string>();
@@ -29,28 +31,34 @@ public class APIWrapper : MonoBehaviour {
 		headers.Add("Accept", "application/vnd.vegvesen.nvdb-v2+json");
 
 		// To identify ourselves
-		headers.Add("X-Client", "");
-		headers.Add("X-Kontaktperson", "");
+		headers.Add("X-Client", "Client");
+		headers.Add("X-Kontaktperson", "Contact");
 
 		return headers;
 	}
 
 	// Use this to create and return a fetch request
-	private WWW CreateFetchRequest(double latitude, double longitude) {
+	private WWW CreateFetchRequest(int id, double latitude, double longitude) {
 		// The query to fetch road signs
-		string url = API_URL + "vegobjekter/96?inkluder=geometri,egenskaper&srid=4326&kartutsnitt=" +
+        string url = API_URL + "vegobjekter/" + id + "?inkluder=geometri,egenskaper,relasjoner&srid=4326&kartutsnitt=" +
 			(longitude - deltaLong) + "," +
 			(latitude - deltaLat) + "," +
 			(longitude + deltaLong) + "," +
 			(latitude + deltaLat);
-
 		Debug.Log(url);
-
-		// A dictionary that contains the relevant headers we need to send to the API
 
 		// Make a WWW (similar to fetch)       
 		return new WWW(url, null, CreateHeaders());
 	}
+
+    private WWW CreateSingleFetchRequest(int id) {
+        // The query to fetch road signs
+        string url = API_URL + "vegobjekter/96/" + id + "?srid=4326&inkluder=alle";
+        Debug.Log(url);
+
+        // Make a WWW (similar to fetch)       
+        return new WWW(url, null, CreateHeaders());
+    }
 
 	public void FetchObjectTypes() {
 		string url = API_URL + "vegobjekttyper";
@@ -62,8 +70,8 @@ public class APIWrapper : MonoBehaviour {
 
 	}
 
-	public void FetchObjects(GPSManager.GPSLocation location, Action<List<GPSManager.GPSLocation>> callback) {
-		WWW www = CreateFetchRequest(location.latitude, location.longitude);
+	public void FetchObjects(int id, GPSManager.GPSLocation location, Action<List<Objekt>> callback) {
+		WWW www = CreateFetchRequest(id, location.latitude, location.longitude);
 
 		// Start a coroutine that tries to get the data from the API
 		StartCoroutine(WaitForRequest(www, objects => {
@@ -71,10 +79,30 @@ public class APIWrapper : MonoBehaviour {
 		}));
 	}
 
+    public void FetchObject(int id, Action<Objekt> callback) {
+        WWW www = CreateSingleFetchRequest(id);
+
+        StartCoroutine(WaitForSingleRequest(www, obj => {
+            callback(obj);
+        }));
+    }
+
+    IEnumerator WaitForSingleRequest(WWW www, Action<Objekt> callback) {
+        yield return www;
+
+        if(!string.IsNullOrEmpty(www.error)) {
+            Debug.Log("WWW Error: " + www.error);
+        }
+        else {
+            Objekt data = JsonUtility.FromJson<Objekt>(www.text);
+            callback(data);
+        }
+    }
+
 	// The coroutine that gets the data from the API
 	// Parameters:
 	//      WWW www -> The request URL with the correct headers
-	IEnumerator WaitForRequest(WWW www, Action<List<GPSManager.GPSLocation>> callback) {
+	IEnumerator WaitForRequest(WWW www, Action<List<Objekt>> callback) {
 		// Request data from the API and come back when it's done
 		yield return www;
 
@@ -82,7 +110,7 @@ public class APIWrapper : MonoBehaviour {
 		if (!string.IsNullOrEmpty(www.error)) {
 			Debug.Log("WWW Error: " + www.error);
 		} else {
-			List<GPSManager.GPSLocation> roadObjectList = new List<GPSManager.GPSLocation>();
+			List<Objekt> roadObjectList = new List<Objekt>();
 
 			// Else handle the data
 			// For debugging purposes
@@ -94,44 +122,47 @@ public class APIWrapper : MonoBehaviour {
 
 			// Go through each Objekter in the data.objekter (the road objects)
 			foreach (Objekt obj in data.objekter) {
-				// For debugging purposes
-				//Debug.Log(obj.geometri.wkt);
+                // For debugging purposes
+                //Debug.Log(oLocation.latitude + " - " + oLocation.longitude + " - " + oLocation.altitude);
+                //Debug.Log(oLocation.ToString());
 
-				// Split the object's wkt using the delimiterChars defined above
-				string[] wkt = Regex.Split(obj.geometri.wkt, regexPattern);
-				List<double> points = new List<double>();
-				foreach (string s in wkt) {
-					if(!String.IsNullOrEmpty(s)) {
-						points.Add(double.Parse(s));
-					}
-				}
-
-				// Make a new GPSLocation using the values from the splitted text
-				// TODO Currently only supports POINT because POINT has 3 points of data
-				GPSManager.GPSLocation oLocation;
-				if(points.Count == 3) {
-					oLocation = new GPSManager.GPSLocation(points[0], points[1], points[2]);
-				} else if (points.Count == 2) {
-					oLocation = new GPSManager.GPSLocation(points[0], points[1]);
-				} else {
-					oLocation = new GPSManager.GPSLocation(points[0], points[1], points[2]);
-					// MULTILINE???????
-					// ?
-				}
-				oLocation.obj = obj;
-
-				// For debugging purposes
-				//Debug.Log(oLocation.latitude + " - " + oLocation.longitude + " - " + oLocation.altitude);
-				Debug.Log(oLocation.ToString());
-				// Add the location to our roadObjectList
-				roadObjectList.Add(oLocation);
+                // Add the location to our roadObjectList
+                roadObjectList.Add(ParseObject(obj));
 			}
 			callback(roadObjectList);
 
 			// For debuggin purposes
-			//Debug.Log(roadObjectList.Count);
+			//			Debug.Log(roadObjectList.Count);
+			//debugText.text = roadObjectList.Count + " objects";
 		}
 	}
+
+    private Objekt ParseObject(Objekt objekt) {
+        // For debugging purposes
+        //Debug.Log(obj.geometri.wkt);
+
+        string wkt = objekt.geometri.wkt;
+        wkt = wkt.Substring(wkt.IndexOf("(") + 1).Trim(')');
+
+        //[63.429624610409434, 10.393547899740911, 10.9]
+        string[] wktArray = wkt.Split(',');
+
+        List<GPSManager.GPSLocation> coordinates = new List<GPSManager.GPSLocation>();
+        foreach(string s in wktArray) {
+            string[] sArray = s.Trim().Split(' ');
+            double latitude = double.Parse(sArray[0]);
+            double longitude = double.Parse(sArray[1]);
+            if(sArray.Length == 2) {
+                coordinates.Add(new GPSManager.GPSLocation(latitude, longitude));
+            }
+            else {
+                double altitude = double.Parse(sArray[2]);
+                coordinates.Add(new GPSManager.GPSLocation(latitude, longitude, altitude));
+            }
+        }
+        objekt.parsedLocation = coordinates;
+        return objekt;
+    }
 
 	// Much the same as WaitForRequest
 	IEnumerator WaitForObjectTypeRequest(WWW www, Action<List<ObjectType>> callback) {
@@ -165,15 +196,61 @@ public class Objekt {
 	public int id;
 	public string href;
 	public Geometri geometri;
-	public List<Dictionary<string, string>> egenskaper;
+    public List<Egenskaper> egenskaper;
+    public Relasjoner relasjoner;
+
+    public List<GPSManager.GPSLocation> parsedLocation;
+    public List<Objekt> plates;
 }
+
+[Serializable]
+public class Egenskaper {
+    public int id;
+    public string navn;
+    public int datatype;
+    public string datatype_tekst;
+    public string verdi;
+    public int enum_id;
+    public Enhet enhet;
+}
+
+[Serializable]
+public class Enhet {
+    public int id;
+    public string navn;
+    public string kortnavn;
+}
+
+[Serializable]
+public class Relasjoner {
+    public List<Barn> barn;
+    public List<Foreldre> foreldre;
+}
+
+[Serializable]
+public class Relasjon {
+    public RelasjonType type;
+    public List<int> vegobjekter;
+}
+
+[Serializable]
+public class RelasjonType {
+    public int id;
+    public string navn;
+}
+
+[Serializable]
+public class Barn: Relasjon {}
+
+[Serializable]
+public class Foreldre: Relasjon {}
 
 [Serializable]
 public class Neste {
 	public string start;
 	public string href;
 }
-
+    
 [Serializable]
 public class Metadata {
 	public int antall;
@@ -185,6 +262,11 @@ public class Metadata {
 public class RootObject {
 	public List<Objekt> objekter;
 	public Metadata metadata;
+}
+
+[Serializable]
+public class RootSingleObject {
+    public Objekt objekt;
 }
 
 [Serializable]
