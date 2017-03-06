@@ -98,8 +98,8 @@ public class GPSManager : MonoBehaviour {
 		oldLocation = myLocation;
 		myLocation = new GPSLocation(service.lastData.latitude, service.lastData.longitude, service.lastData.altitude);
 		if (!initialPositionUpdated) oldLocation = myLocation;
-		double distance = GenerateObjects.Haversine(oldLocation, myLocation);
-		double bearing = GenerateObjects.CalculateBearing(oldLocation, myLocation);
+        double distance = HelperFunctions.Haversine(oldLocation, myLocation);
+        double bearing = HelperFunctions.CalculateBearing(oldLocation, myLocation);
 		transform.position =
 			Vector3.Lerp(transform.position,
 				new Vector3(

@@ -19,8 +19,8 @@ public class APIWrapper : MonoBehaviour {
 	means that you extend the area around you. Because of how coordinates work,
 	to get a square, longitude needs to have a bigger delta.
 	*/
-	private float deltaLat = 0.002f;
-	private float deltaLong = 0.003f;
+	private float deltaLat = 0.0015f;
+	private float deltaLong = 0.0025f;
 
 	public Text debugText;
 
