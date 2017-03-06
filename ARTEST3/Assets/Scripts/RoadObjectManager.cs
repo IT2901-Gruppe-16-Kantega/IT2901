@@ -8,9 +8,6 @@ public class RoadObjectManager : MonoBehaviour {
 
     [HideInInspector]
     public Objekt objekt;
-	
-    [Range(0.01f, 1.00f)]
-	public float distanceThreshold = 100;
 
 	public Material[] colors = new Material[3];
 	public Renderer poleRenderer;
