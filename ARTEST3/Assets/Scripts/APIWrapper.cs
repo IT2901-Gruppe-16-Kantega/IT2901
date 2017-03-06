@@ -150,8 +150,12 @@ public class APIWrapper : MonoBehaviour {
         List<GPSManager.GPSLocation> coordinates = new List<GPSManager.GPSLocation>();
         foreach(string s in wktArray) {
             string[] sArray = s.Trim().Split(' ');
-            double latitude = double.Parse(sArray[0]);
-            double longitude = double.Parse(sArray[1]);
+            double latitude;
+            double.TryParse(sArray[0], out latitude);
+
+            double longitude;
+            double.TryParse(sArray[1], out longitude);
+
             if(sArray.Length == 2) {
                 coordinates.Add(new GPSManager.GPSLocation(latitude, longitude));
             }

@@ -81,7 +81,7 @@ public class RoadGenerator : MonoBehaviour {
             meshRenderer.material = matRoad;
             meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 
-            height -= 0.0001f;
+            height -= 0.001f;
         }
     }
 }
