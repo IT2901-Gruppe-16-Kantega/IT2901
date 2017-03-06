@@ -13,7 +13,7 @@ public class RoadObjectManager : MonoBehaviour {
 	public float distanceThreshold = 100;
 
 	public Material[] colors = new Material[3];
-	public Renderer plateRenderer;
+	public Renderer poleRenderer;
 	public TextMesh distanceText;
 
 	[HideInInspector]
@@ -55,14 +55,14 @@ public class RoadObjectManager : MonoBehaviour {
 	}
 
 	public void Selected() {
-		plateRenderer.material = colors[1];
+		poleRenderer.material = colors[1];
 	}
 
 	public void UnSelected() {
 		if(hasBeenMoved) {
-			plateRenderer.material = colors[2];
+			poleRenderer.material = colors[2];
 		} else {
-			plateRenderer.material = colors[0];
+			poleRenderer.material = colors[0];
 		}
 	}
 }
