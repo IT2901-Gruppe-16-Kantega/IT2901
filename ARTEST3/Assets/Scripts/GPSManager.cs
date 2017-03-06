@@ -143,6 +143,13 @@ public class GPSManager : MonoBehaviour {
 			altitude = other.altitude;
 		}
 
+		public GPSLocation(GPSLocation other) {
+			latitude = other.latitude;
+			longitude = other.longitude;
+			altitude = other.altitude;
+			obj = other.obj;
+		}
+
 		public override string ToString() {
 			return latitude + ", " + longitude + ", " + altitude;
 		}

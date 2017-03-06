@@ -3,6 +3,8 @@
 public class RoadObjectManager : MonoBehaviour {
 
 	public GPSManager.GPSLocation roadObjectLocation;
+	[Range(0.01f, 1.00f)]
+	public float distanceThreshold = 100;
 
     [HideInInspector]
     public Objekt objekt;
@@ -27,10 +29,9 @@ public class RoadObjectManager : MonoBehaviour {
 
 	void Update() {
 		// I'm Mr. Meeseeks, look at me!
-		transform.LookAt(new Vector3(
-                            Camera.main.transform.position.x, 
-                            0,
-                            Camera.main.transform.position.z));
+		transform.LookAt(new Vector3(Camera.main.transform.position.x,
+									0,
+									Camera.main.transform.position.z));
 		updateLocation();
 	}
 
