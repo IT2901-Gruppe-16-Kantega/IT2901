@@ -64,4 +64,6 @@ sysinfo.txt
 
 # Builds
 *.apk
-*.unitypackage
+*.unitypackagenode_modules/
+App/
+ARTEST3/App/
