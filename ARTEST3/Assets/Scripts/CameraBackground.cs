@@ -47,7 +47,7 @@ public class CameraBackground : MonoBehaviour {
 		image.rectTransform.localEulerAngles = new Vector3(0f, 0f, cwNeeded);
 
 		// Calculate the camera's aspect ratio
-		float videoRatio = (float)phoneCamera.width / (float)phoneCamera.height;
+		float videoRatio = (float) phoneCamera.width / (float) phoneCamera.height;
 		// Set the aspect ratio of the displaying image to the camera's aspect ratio to fix distortion problems
 		arf.aspectRatio = videoRatio;
 

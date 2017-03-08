@@ -5,21 +5,23 @@ using UnityEngine;
 public class GenerateObjects : MonoBehaviour {
 
 	// Max seconds before fetching using default coords
-	const int MAX_TIME_WAIT = 1;
+	const int MAX_TIME_WAIT = 10;
 	int time_waited = 0;
 
 	// Our location. Default location is somewhere in the middle of Trondheim
 	//public static GPSManager.GPSLocation myLocation = new GPSManager.GPSLocation(63.430626, 10.392145);
-    public static GPSManager.GPSLocation myLocation = new GPSManager.GPSLocation(63.417687, 10.404782);
+	//public static GPSManager.GPSLocation myLocation = new GPSManager.GPSLocation(63.417687, 10.404782);
 
 	// The list containing the locations of each road object
 	List<Objekt> roadObjectList = new List<Objekt>();
-    List<Objekt> road = new List<Objekt>();
-	
+	List<Objekt> road = new List<Objekt>();
+
 	// The object to instantiate (create) when placing the road objects
 	public GameObject blueSign;
 	public GameObject redSign;
 	public GameObject redTriangle;
+
+	public GameObject SignsParent;
 
 	// SerializeField makes the private field visible to the editor
 	// Currently, no other GameObject needs the GPSManager, so this is fine
@@ -27,8 +29,8 @@ public class GenerateObjects : MonoBehaviour {
 	[SerializeField]
 	private APIWrapper apiWrapper;
 
-    [SerializeField]
-    private RoadGenerator roadGenerator;
+	[SerializeField]
+	private RoadGenerator roadGenerator;
 
 	// Use this for initialization
 	void Start() {
@@ -37,12 +39,12 @@ public class GenerateObjects : MonoBehaviour {
 		so make sure that it has it attached
 		*/
 		apiWrapper = GetComponent<APIWrapper>();
-        roadGenerator = GetComponent<RoadGenerator>();
+		roadGenerator = GetComponent<RoadGenerator>();
 
-        // Update position
-        myLocation = GPSManager.myLocation;
-		
-        StartCoroutine(FetchAfterLocationUpdated());
+		// Update position
+		//        myLocation = GPSManager.myLocation;
+
+		StartCoroutine(FetchAfterLocationUpdated());
 	}
 
 	// Coroutine: FetchObjects
@@ -50,22 +52,22 @@ public class GenerateObjects : MonoBehaviour {
 	// Then fetches the objects from NVDB using the user's location or the mock location
 	IEnumerator FetchAfterLocationUpdated() {
 		// Wait until position has been updated, or until timeout before fetching
-        while (time_waited < MAX_TIME_WAIT && !GPSManager.initialPositionUpdated) {
+		while (time_waited < MAX_TIME_WAIT && !GPSManager.initialPositionUpdated) {
 			yield return new WaitForSeconds(1);
 			time_waited++;
 		}
-        FetchObjects();
-        roadGenerator.FetchRoad();
+		FetchObjects();
+		roadGenerator.FetchRoad();
 	}
-                
+
 	private void FetchObjects() {
-        // Second parameter is callback, initializing the object list and making the objects when the function is done.
-		apiWrapper.FetchObjects(96, myLocation, objects => {
+		// Second parameter is callback, initializing the object list and making the objects when the function is done.
+		apiWrapper.FetchObjects(96, GPSManager.myLocation, objects => {
 			Debug.Log("Returned " + objects.Count + " objects");
 			this.roadObjectList = objects;
-            this.MakeObjects(this.roadObjectList);
+			this.MakeObjects(this.roadObjectList);
 
-            /*foreach(Objekt o in objects) {
+			/*foreach(Objekt o in objects) {
                 foreach(Barn barn in o.relasjoner.barn) {
                     if(barn.type.id == 96) {
                         foreach(int id in barn.vegobjekter) {
@@ -76,69 +78,66 @@ public class GenerateObjects : MonoBehaviour {
                     }
                 }
             }*/
-        });
+		});
 	}
-        
+
 	// Uses the locations in roadObjectList and instantiates objects
-    void MakeObjects(List<Objekt> objects) {
+	void MakeObjects(List<Objekt> objects) {
 		// For each location in the list
 
-        foreach (Objekt objekt in objects) {
+		foreach (Objekt objekt in objects) {
 
-            // Instantiate a new GameObject on that location relative to us
-            GameObject newGameObject = Instantiate(GetGameObject(objekt), Vector3.zero, Quaternion.identity) as GameObject;
+			// Instantiate a new GameObject on that location relative to us
+			GameObject newGameObject = Instantiate(GetGameObject(objekt), Vector3.zero, Quaternion.identity) as GameObject;
 
-            //Instantiate(blueSign, Vector3.zero, Quaternion.identity) as GameObject;
-            GetGameObject(objekt);
-            //newGameObject.AddComponent<RoadObjectManager>();
+			//Instantiate(blueSign, Vector3.zero, Quaternion.identity) as GameObject;
+			GetGameObject(objekt);
+			//newGameObject.AddComponent<RoadObjectManager>();
 
-            List<Vector3> coordinates = new List<Vector3>();
+			List<Vector3> coordinates = new List<Vector3>();
 
-            for(var i = 0; i < objekt.parsedLocation.Count; i++) {
-                
-                Vector3 position = HelperFunctions.GetPositionFromCoords(objekt.parsedLocation[i]);
+			for (var i = 0; i < objekt.parsedLocation.Count; i++) {
 
-                // Set the parent of the new GameObject to be us (so we dont have a huge list in root)
-                newGameObject.transform.parent = gameObject.transform;
-                newGameObject.GetComponent<RoadObjectManager>().roadObjectLocation = objekt.parsedLocation[i];
-                newGameObject.GetComponent<RoadObjectManager>().updateLocation();
-                newGameObject.GetComponent<RoadObjectManager>().objekt = objekt;
+				Vector3 position = HelperFunctions.GetPositionFromCoords(objekt.parsedLocation[i]);
 
-                if(objekt.parsedLocation.Count == 1) {
-                    newGameObject.transform.position = position;
-                }
-                else {
-                    coordinates.Add(position);
-                }
-            }
+				// Set the parent of the new GameObject to be us (so we dont have a huge list in root)
+				newGameObject.transform.parent = SignsParent.transform;
+				newGameObject.GetComponent<RoadObjectManager>().roadObjectLocation = objekt.parsedLocation[i];
+				newGameObject.GetComponent<RoadObjectManager>().updateLocation();
+				newGameObject.GetComponent<RoadObjectManager>().objekt = objekt;
 
-            if (objekt.parsedLocation.Count > 1) {
-                LineRenderer lineRenderer = newGameObject.AddComponent<LineRenderer>();
-                lineRenderer.material = new Material(Shader.Find("Particles/Additive"));
-                lineRenderer.SetColors(Color.white, Color.white);
-                lineRenderer.SetWidth(2, 2);
-                lineRenderer.SetVertexCount(coordinates.Count);
+				if (objekt.parsedLocation.Count == 1) {
+					newGameObject.transform.position = position;
+				} else {
+					coordinates.Add(position);
+				}
+			}
 
-                lineRenderer.SetPositions(coordinates.ToArray());
-            }
+			if (objekt.parsedLocation.Count > 1) {
+				LineRenderer lineRenderer = newGameObject.AddComponent<LineRenderer>();
+				lineRenderer.material = new Material(Shader.Find("Particles/Additive"));
+				lineRenderer.SetColors(Color.white, Color.white);
+				lineRenderer.SetWidth(2, 2);
+				lineRenderer.SetVertexCount(coordinates.Count);
+
+				lineRenderer.SetPositions(coordinates.ToArray());
+			}
 		}
 	}
 
-    private GameObject GetGameObject(Objekt objekt) {
-        var egenskap = objekt.egenskaper.Find(e => e.id == 5530);
+	private GameObject GetGameObject(Objekt objekt) {
+		var egenskap = objekt.egenskaper.Find(e => e.id == 5530);
 
-        if(egenskap != null) {
-            int signNumber;
-            int.TryParse(egenskap.verdi.Substring(0, 1), out signNumber);
+		if (egenskap != null) {
+			int signNumber;
+			int.TryParse(egenskap.verdi.Substring(0, 1), out signNumber);
 
-            if(signNumber == 1) {
-                return redSign;
-            }
-            else if(signNumber == 2) {
-                return redTriangle;
-            }
-        }
-        return blueSign;
-    }
+			if (signNumber == 1) {
+				return redSign;
+			} else if (signNumber == 2) {
+				return redTriangle;
+			}
+		}
+		return blueSign;
+	}
 }
-    
