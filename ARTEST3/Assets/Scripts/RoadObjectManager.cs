@@ -6,8 +6,8 @@ public class RoadObjectManager : MonoBehaviour {
 	[Range(0.01f, 1.00f)]
 	public float distanceThreshold = 100;
 
-    [HideInInspector]
-    public Objekt objekt;
+	[HideInInspector]
+	public Objekt objekt;
 
 	public Material[] colors = new Material[3];
 	public Renderer poleRenderer;
@@ -56,7 +56,7 @@ public class RoadObjectManager : MonoBehaviour {
 	}
 
 	public void UnSelected() {
-		if(hasBeenMoved) {
+		if (hasBeenMoved) {
 			poleRenderer.material = colors[2];
 		} else {
 			poleRenderer.material = colors[0];
