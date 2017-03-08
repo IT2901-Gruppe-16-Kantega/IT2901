@@ -8,14 +8,9 @@ public class GenerateObjects : MonoBehaviour {
 	const int MAX_TIME_WAIT = 10;
 	int time_waited = 0;
 
-	// Our location. Default location is somewhere in the middle of Trondheim
-	//public static GPSManager.GPSLocation myLocation = new GPSManager.GPSLocation(63.430626, 10.392145);
-	//public static GPSManager.GPSLocation myLocation = new GPSManager.GPSLocation(63.417687, 10.404782);
-
 	// The list containing the locations of each road object
 	List<Objekt> roadObjectList = new List<Objekt>();
-	List<Objekt> road = new List<Objekt>();
-
+	
 	// The object to instantiate (create) when placing the road objects
 	public GameObject blueSign;
 	public GameObject redSign;
@@ -39,12 +34,9 @@ public class GenerateObjects : MonoBehaviour {
 		so make sure that it has it attached
 		*/
 		apiWrapper = GetComponent<APIWrapper>();
-		roadGenerator = GetComponent<RoadGenerator>();
-
-		// Update position
-		//        myLocation = GPSManager.myLocation;
-
-		StartCoroutine(FetchAfterLocationUpdated());
+        roadGenerator = GetComponent<RoadGenerator>();
+        		
+        StartCoroutine(FetchAfterLocationUpdated());
 	}
 
 	// Coroutine: FetchObjects
