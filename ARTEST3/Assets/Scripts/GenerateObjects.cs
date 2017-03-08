@@ -5,16 +5,11 @@ using UnityEngine;
 public class GenerateObjects : MonoBehaviour {
 
 	// Max seconds before fetching using default coords
-	const int MAX_TIME_WAIT = 1;
+	const int MAX_TIME_WAIT = 10;
 	int time_waited = 0;
-
-	// Our location. Default location is somewhere in the middle of Trondheim
-	//public static GPSManager.GPSLocation myLocation = new GPSManager.GPSLocation(63.430626, 10.392145);
-    public static GPSManager.GPSLocation myLocation = new GPSManager.GPSLocation(63.417687, 10.404782);
 
 	// The list containing the locations of each road object
 	List<Objekt> roadObjectList = new List<Objekt>();
-    List<Objekt> road = new List<Objekt>();
 	
 	// The object to instantiate (create) when placing the road objects
 	public GameObject blueSign;
@@ -38,10 +33,7 @@ public class GenerateObjects : MonoBehaviour {
 		*/
 		apiWrapper = GetComponent<APIWrapper>();
         roadGenerator = GetComponent<RoadGenerator>();
-
-        // Update position
-        myLocation = GPSManager.myLocation;
-		
+        		
         StartCoroutine(FetchAfterLocationUpdated());
 	}
 
@@ -60,7 +52,7 @@ public class GenerateObjects : MonoBehaviour {
                 
 	private void FetchObjects() {
         // Second parameter is callback, initializing the object list and making the objects when the function is done.
-		apiWrapper.FetchObjects(96, myLocation, objects => {
+		apiWrapper.FetchObjects(95, GPSManager.myLocation, objects => {
 			Debug.Log("Returned " + objects.Count + " objects");
 			this.roadObjectList = objects;
             this.MakeObjects(this.roadObjectList);

@@ -22,7 +22,7 @@ public class RoadGenerator : MonoBehaviour {
     public void CreateRoadMesh(List<Objekt> roads) {
         foreach(Objekt road in roads) {
 
-            float height = 0.0000f;
+            float height = -1.0000f;
             GameObject roadObject = new GameObject("Road");
             roadObject.transform.parent = gameObject.transform;
 
