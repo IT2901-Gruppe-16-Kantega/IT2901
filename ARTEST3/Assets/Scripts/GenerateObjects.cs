@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Text;
 
 public class GenerateObjects : MonoBehaviour {
 
@@ -12,9 +13,10 @@ public class GenerateObjects : MonoBehaviour {
 	List<Objekt> roadObjectList = new List<Objekt>();
 	
 	// The object to instantiate (create) when placing the road objects
-	public GameObject blueSign;
-	public GameObject redSign;
-	public GameObject redTriangle;
+    public GameObject signPost;
+	public GameObject circleBlue;
+	public GameObject circleRed;
+	public GameObject triangleRed;
 
 	public GameObject SignsParent;
 
@@ -80,7 +82,7 @@ public class GenerateObjects : MonoBehaviour {
 		foreach (Objekt objekt in objects) {
 
 			// Instantiate a new GameObject on that location relative to us
-			GameObject newGameObject = Instantiate(GetGameObject(objekt), Vector3.zero, Quaternion.identity) as GameObject;
+			GameObject signplateObject = Instantiate(GetGameObject(objekt), Vector3.zero, Quaternion.identity) as GameObject;
 
 			//Instantiate(blueSign, Vector3.zero, Quaternion.identity) as GameObject;
 			GetGameObject(objekt);
@@ -93,29 +95,86 @@ public class GenerateObjects : MonoBehaviour {
 				Vector3 position = HelperFunctions.GetPositionFromCoords(objekt.parsedLocation[i]);
 
 				// Set the parent of the new GameObject to be us (so we dont have a huge list in root)
-				newGameObject.transform.parent = SignsParent.transform;
-				newGameObject.GetComponent<RoadObjectManager>().roadObjectLocation = objekt.parsedLocation[i];
-				newGameObject.GetComponent<RoadObjectManager>().updateLocation();
-				newGameObject.GetComponent<RoadObjectManager>().objekt = objekt;
 
-				if (objekt.parsedLocation.Count == 1) {
-					newGameObject.transform.position = position;
-				} else {
-					coordinates.Add(position);
-				}
+                // Gets the signplate relations, and finds the parent with id 95 (signpost)
+                Foreldre signpost = objekt.relasjoner.foreldre.Find(f => f.type.id == 95);
+                GameObject signpostObject;
+
+                // If sign plate has a parent signpost
+                if(signpost != null) {
+
+                    // Find the id of the first (and only signpost)
+                    string skiltpunktID = signpost.vegobjekter[0].ToString();
+
+                    Transform skiltpunktObjectTransform = SignsParent.transform.Find(skiltpunktID);
+
+                    // Uses child count to place signs under each other
+                    int childCount = 0;
+                    if(skiltpunktObjectTransform == null) {
+                        signpostObject = Instantiate(signPost, position, Quaternion.identity) as GameObject;
+                        signpostObject.name = skiltpunktID;
+                        signpostObject.transform.parent = SignsParent.transform;
+                    }
+                    else {
+                        signpostObject = skiltpunktObjectTransform.gameObject;
+                        childCount++;
+                    }
+
+                    signplateObject.transform.parent = signpostObject.transform;
+
+                    RoadObjectManager rom = signplateObject.GetComponent<RoadObjectManager>();
+                    rom.roadObjectLocation = objekt.parsedLocation[i];
+                    rom.updateLocation();
+                    rom.objekt = objekt;
+
+                    rom.objectText.text = CreateRoadObjectText(objekt.egenskaper.Find(e => e.id == 5530).verdi);
+                    rom.signpostRenderer = signplateObject.GetComponent<Renderer>();
+
+
+                    if(objekt.parsedLocation.Count == 1) {
+                        signplateObject.transform.position = position;
+                        signplateObject.transform.Translate(0, 2 - (float)-childCount, 0);
+                    }
+                    else {
+                        coordinates.Add(position);
+                    }
+                }
+                else {
+                    // DO SOMETHING FOR SIGNS WITHOUT PARENTS, THOSE POOR THINGS EXISTS :'(
+                    Destroy(signplateObject);
+                }
 			}
 
-			if (objekt.parsedLocation.Count > 1) {
-				LineRenderer lineRenderer = newGameObject.AddComponent<LineRenderer>();
+			/*if (objekt.parsedLocation.Count > 1) {
+                LineRenderer lineRenderer = signplateObject.AddComponent<LineRenderer>();
 				lineRenderer.material = new Material(Shader.Find("Particles/Additive"));
 				lineRenderer.SetColors(Color.white, Color.white);
 				lineRenderer.SetWidth(2, 2);
 				lineRenderer.SetVertexCount(coordinates.Count);
 
 				lineRenderer.SetPositions(coordinates.ToArray());
-			}
+			}*/
 		}
 	}
+
+    private string CreateRoadObjectText(string input) {
+        int lineLength = 10;
+
+        StringBuilder sb = new StringBuilder();
+
+        int currentLineLength = 0;
+        for (int i = 0; i < input.Length; i++) {
+            currentLineLength++;
+
+            if(currentLineLength >= lineLength && (input[i] == ' ' || input[i] == '-')) {
+                sb.Append('\n');
+                currentLineLength = 0;
+            }
+
+            sb.Append(input[i]);
+        }
+        return sb.ToString();
+    }
 
 	private GameObject GetGameObject(Objekt objekt) {
 		var egenskap = objekt.egenskaper.Find(e => e.id == 5530);
@@ -125,11 +184,11 @@ public class GenerateObjects : MonoBehaviour {
 			int.TryParse(egenskap.verdi.Substring(0, 1), out signNumber);
 
 			if (signNumber == 1) {
-				return redSign;
+                return circleRed;
 			} else if (signNumber == 2) {
-				return redTriangle;
+                return triangleRed;
 			}
 		}
-		return blueSign;
+        return circleBlue;
 	}
 }

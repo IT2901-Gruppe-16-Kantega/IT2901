@@ -3,15 +3,18 @@
 public class RoadObjectManager : MonoBehaviour {
 
 	public GPSManager.GPSLocation roadObjectLocation;
-	[Range(0.01f, 1.00f)]
+	
+    [Range(0.01f, 1.00f)]
 	public float distanceThreshold = 100;
 
 	[HideInInspector]
 	public Objekt objekt;
 
 	public Material[] colors = new Material[3];
-	public Renderer poleRenderer;
+    public Renderer signpostRenderer;
 	public TextMesh distanceText;
+
+    public TextMesh objectText;
 
 	[HideInInspector]
 	public double distance;
@@ -29,6 +32,7 @@ public class RoadObjectManager : MonoBehaviour {
 		transform.LookAt(new Vector3(Camera.main.transform.position.x,
 									0,
 									Camera.main.transform.position.z));
+        transform.Rotate(-90, 0, 0);
 		updateLocation();
 	}
 
@@ -52,14 +56,14 @@ public class RoadObjectManager : MonoBehaviour {
 	}
 
 	public void Selected() {
-		poleRenderer.material = colors[1];
+        signpostRenderer.material = colors[1];
 	}
 
 	public void UnSelected() {
 		if (hasBeenMoved) {
-			poleRenderer.material = colors[2];
+            signpostRenderer.material = colors[2];
 		} else {
-			poleRenderer.material = colors[0];
+            signpostRenderer.material = colors[0];
 		}
 	}
 }
