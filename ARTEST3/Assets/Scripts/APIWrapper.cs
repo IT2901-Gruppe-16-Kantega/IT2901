@@ -136,31 +136,36 @@ public class APIWrapper : MonoBehaviour {
 		}
 	}
 
-	private Objekt ParseObject(Objekt objekt) {
-		// For debugging purposes
-		//Debug.Log(obj.geometri.wkt);
+    private Objekt ParseObject(Objekt objekt) {
+        // For debugging purposes
+        //Debug.Log(obj.geometri.wkt);
 
-		string wkt = objekt.geometri.wkt;
-		wkt = wkt.Substring(wkt.IndexOf("(") + 1).Trim(')');
+        string wkt = objekt.geometri.wkt;
+        wkt = wkt.Substring(wkt.IndexOf("(") + 1).Trim(')');
 
-		//[63.429624610409434, 10.393547899740911, 10.9]
-		string[] wktArray = wkt.Split(',');
+        //[63.429624610409434, 10.393547899740911, 10.9]
+        string[] wktArray = wkt.Split(',');
 
-		List<GPSManager.GPSLocation> coordinates = new List<GPSManager.GPSLocation>();
-		foreach (string s in wktArray) {
-			string[] sArray = s.Trim().Split(' ');
-			double latitude = double.Parse(sArray[0]);
-			double longitude = double.Parse(sArray[1]);
-			if (sArray.Length == 2) {
-				coordinates.Add(new GPSManager.GPSLocation(latitude, longitude));
-			} else {
-				double altitude = double.Parse(sArray[2]);
-				coordinates.Add(new GPSManager.GPSLocation(latitude, longitude, altitude));
-			}
-		}
-		objekt.parsedLocation = coordinates;
-		return objekt;
-	}
+        List<GPSManager.GPSLocation> coordinates = new List<GPSManager.GPSLocation>();
+        foreach(string s in wktArray) {
+            string[] sArray = s.Trim().Split(' ');
+            double latitude;
+            double.TryParse(sArray[0], out latitude);
+
+            double longitude;
+            double.TryParse(sArray[1], out longitude);
+
+            if(sArray.Length == 2) {
+                coordinates.Add(new GPSManager.GPSLocation(latitude, longitude));
+            }
+            else {
+                double altitude = double.Parse(sArray[2]);
+                coordinates.Add(new GPSManager.GPSLocation(latitude, longitude, altitude));
+            }
+        }
+        objekt.parsedLocation = coordinates;
+        return objekt;
+    }
 
 	// Much the same as WaitForRequest
 	IEnumerator WaitForObjectTypeRequest(WWW www, Action<List<ObjectType>> callback) {

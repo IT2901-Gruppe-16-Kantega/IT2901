@@ -75,15 +75,15 @@ public class RoadGenerator : MonoBehaviour {
 			for (int i = 0; i < normals.Length; i++)
 				normals[i] = Vector3.up;
 			mesh.normals = normals;
-
+			
 			meshFilter.mesh = mesh;
 
 			// Create a mesh renderer for the mesh to show
 			MeshRenderer meshRenderer = roadObject.AddComponent<MeshRenderer>();
 			meshRenderer.material = matRoad;
 			meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-
-			height -= 0.0001f;
-		}
-	}
+			
+            height -= 0.001f;
+        }
+    }
 }
