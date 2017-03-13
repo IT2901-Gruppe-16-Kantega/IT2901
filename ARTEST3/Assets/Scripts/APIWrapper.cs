@@ -129,7 +129,11 @@ public class APIWrapper : MonoBehaviour {
 				roadObjectList.Add(ParseObject(obj));
 			}
 			callback(roadObjectList);
-
+			if(LocalStorage.SaveData(www.text)) {
+				Debug.Log("FILE SAVED");
+			} else {
+				Debug.Log("Priness is in another castle");
+			}
 			// For debuggin purposes
 			//			Debug.Log(roadObjectList.Count);
 			//debugText.text = roadObjectList.Count + " objects";
