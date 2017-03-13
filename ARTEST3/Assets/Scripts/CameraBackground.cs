@@ -63,12 +63,16 @@ public class CameraBackground : MonoBehaviour {
 
 	// A button on screen that plays or pauses the camera
 	void OnGUI() {
-		if (GUI.Button(new Rect(10, Screen.height / 2 - 100, Screen.width / 10, Screen.height / 10), "Toggle Camera")) {
+		if (GUI.Button(new Rect(10, Screen.height / 2 - 120, Screen.width / 10, Screen.height / 10), "Toggle Camera")) {
 			if (phoneCamera.isPlaying) {
 				phoneCamera.Pause();
 			} else {
 				phoneCamera.Play();
 			}
+		}
+
+		if (GUI.Button(new Rect(10, Screen.height / 2 - 10, Screen.width / 10, Screen.height / 10), "Open map")) {
+			Application.OpenURL ("MapApp:");
 		}
 	}
 }
