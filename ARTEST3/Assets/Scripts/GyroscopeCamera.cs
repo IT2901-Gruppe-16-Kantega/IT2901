@@ -7,6 +7,8 @@ public class GyroscopeCamera : MonoBehaviour {
 	// Gyroscope variables
 	private Gyroscope gyro;
 	private bool gyroIsSupported;
+	public bool calibrating = false;
+	public float rotation = 0;
 
 	// For filtering gyro data
 	private const float lowPassFactor = 0.8f; // A float between 0.01f to 0.99f. Less means more dampening
@@ -43,12 +45,14 @@ public class GyroscopeCamera : MonoBehaviour {
 
 	void Update() {
 		// Can't do anything if we don't have a gyro.
-		if (!gyroIsSupported) {
+		if (!gyroIsSupported || calibrating) {
 			return;
 		}
+		Debug.Log ("GYROSCOPE");
 		// Slerp is spherical linear interpolation, which means that our movement is smoothed instead of jittering
 		transform.rotation = Quaternion.Slerp(transform.rotation,
 cameraBase * (ConvertRotation(referenceRotation * Input.gyro.attitude)), lowPassFactor);
+		transform.RotateAround (transform.position, Vector3.up, rotation);
 	}
 
 	// Update the gyroscope calibration
