@@ -9,6 +9,10 @@ public class ManualCalibration : MonoBehaviour {
 	private float rotationThreshold = 20;
 	[Range(-90f, 90f)]
 	private float rotationAmountCamera = 0;
+	private float totalPinch = 0;
+	private float pinchThreshold = 50;
+	private bool isRotating = false;
+	private bool isZooming = false;
 
 	[SerializeField] private GyroscopeCamera gyroCam;
 
@@ -61,13 +65,17 @@ public class ManualCalibration : MonoBehaviour {
 		*/
 		if (Input.touchCount != 2) {
 			totalRotation = 0;
+			totalPinch = 0;
 			gyroCam.calibrating = false;
+			isRotating = false;
+			isZooming = false;
 		} else {
 			gyroCam.calibrating = true;
 		}
 
 		if (!gyroCam.calibrating) {
 			totalRotation = 0;
+			totalPinch = 0;
 			return;
 		}
 
@@ -76,15 +84,19 @@ public class ManualCalibration : MonoBehaviour {
 		float rotationAmount = 0.0f;
 
 		DetectTouchMovement.Calculate ();
-		/*
-		if (Mathf.Abs (DetectTouchMovement.pinchDistanceDelta) > 0) { //Zoom
+
+		totalPinch += Mathf.Abs (DetectTouchMovement.pinchDistanceDelta);
+		if (totalPinch >= pinchThreshold && !isRotating) { //Zoom
+			isZooming = true;
 			pinchAmount = DetectTouchMovement.pinchDistanceDelta;
-			Camera.main.fieldOfView -= pinchAmount;
+			Camera.main.fieldOfView -= pinchAmount*0.1f;
+			Camera.main.fieldOfView = Mathf.Clamp (Camera.main.fieldOfView, 1f, 60f);
 		}
-		*/
+
 		totalRotation += Mathf.Abs (DetectTouchMovement.turnAngleDelta);
 		Debug.Log (totalRotation);
-		if (totalRotation >= rotationThreshold) { // Rotate
+		if (totalRotation >= rotationThreshold && ! isZooming) { // Rotate
+			isRotating = true;
 			//Vector3 rotationDeg = Vector3.zero;
 			//rotationDeg.y = -DetectTouchMovement.turnAngleDelta;
 			//desiredRotation *= Quaternion.Euler (rotationDeg);
@@ -92,7 +104,7 @@ public class ManualCalibration : MonoBehaviour {
 			transform.Rotate( 0, rotationAmount, 0, Space.World);
 			rotationAmountCamera += rotationAmount;
 		}
-		rotationAmountCamera = (rotationAmountCamera > 90f) ? 90f : ((rotationAmountCamera < -90f) ? -90f: rotationAmountCamera);
+		rotationAmountCamera = Mathf.Clamp(rotationAmountCamera, -90f, 90f);
 		gyroCam.rotation = rotationAmountCamera;
 
 	}
