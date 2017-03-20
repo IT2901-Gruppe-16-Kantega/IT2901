@@ -7,6 +7,8 @@ public class ManualCalibration : MonoBehaviour {
 	public float rotationDampening = 0.8f;
 	private float totalRotation = 0.0f;
 	private float rotationThreshold = 20;
+	[Range(-90f, 90f)]
+	private float rotationAmountCamera = 0;
 
 	[SerializeField] private GyroscopeCamera gyroCam;
 
@@ -57,13 +59,17 @@ public class ManualCalibration : MonoBehaviour {
 			gyroCam.calibrating = false;
 		}
 		*/
+		if (Input.touchCount != 2) {
+			totalRotation = 0;
+			gyroCam.calibrating = false;
+		} else {
+			gyroCam.calibrating = true;
+		}
+
 		if (!gyroCam.calibrating) {
 			totalRotation = 0;
 			return;
 		}
-
-		if (Input.touchCount != 2)
-			totalRotation = 0;
 
 		float pinchAmount = 0;
 		Quaternion desiredRotation = transform.rotation;
@@ -84,13 +90,16 @@ public class ManualCalibration : MonoBehaviour {
 			//desiredRotation *= Quaternion.Euler (rotationDeg);
 			rotationAmount = DetectTouchMovement.turnAngleDelta * rotationDampening;
 			transform.Rotate( 0, rotationAmount, 0, Space.World);
+			rotationAmountCamera += rotationAmount;
 		}
+		rotationAmountCamera = (rotationAmountCamera > 90f) ? 90f : ((rotationAmountCamera < -90f) ? -90f: rotationAmountCamera);
+		gyroCam.rotation = rotationAmountCamera;
 
 	}
 	// A button on screen that plays or pauses the camera
-	void OnGUI() {
+	/*void OnGUI() {
 		if (GUI.Button(new Rect(10, Screen.height / 2 + 100, Screen.width / 10, Screen.height / 10), "Manual Calibration")) {
 			gyroCam.calibrating = !gyroCam.calibrating;
 		}
-	}
+	}*/
 }

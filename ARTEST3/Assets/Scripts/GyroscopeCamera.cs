@@ -48,11 +48,25 @@ public class GyroscopeCamera : MonoBehaviour {
 		if (!gyroIsSupported || calibrating) {
 			return;
 		}
-		Debug.Log ("GYROSCOPE");
 		// Slerp is spherical linear interpolation, which means that our movement is smoothed instead of jittering
+		Vector3 gyroTemp = gyro.attitude.eulerAngles;
+		gyroTemp.y += rotation;
+
+
+		/*if (Mathf.Abs (gyro.rotationRate.y) > 0.3f) {
+			Debug.Log (gyro.rotationRate);
+			gyroTemp.y = gyro.attitude.eulerAngles.y;
+		}
+		*/
+
+
 		transform.rotation = Quaternion.Slerp(transform.rotation,
-cameraBase * (ConvertRotation(referenceRotation * Input.gyro.attitude)), lowPassFactor);
-		transform.RotateAround (transform.position, Vector3.up, rotation);
+			cameraBase * (ConvertRotation(referenceRotation * gyro.attitude)), lowPassFactor);
+		transform.Rotate (0, rotation, 0, Space.World);
+		//transform.rotation = Quaternion.Euler (transform.rotation.eulerAngles.x, gyroTemp.y, transform.rotation.eulerAngles.z);
+		//transform.rotation = Quaternion.Slerp(transform.rotation, cameraBase * (ConvertRotation(referenceRotation * Quaternion.Euler(gyroTemp))), lowPassFactor);
+
+		//transform.RotateAround (transform.position, Vector3.up, rotation);
 	}
 
 	// Update the gyroscope calibration
