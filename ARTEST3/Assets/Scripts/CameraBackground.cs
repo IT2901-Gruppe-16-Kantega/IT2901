@@ -6,69 +6,64 @@ Renders the phone's camera onto the world
 */
 public class CameraBackground : MonoBehaviour {
 	// The camera itself
-	private WebCamTexture phoneCamera;
+	private WebCamTexture _phoneCamera;
 	// The object that displays the picture
-	private RawImage image;
+	private RawImage _image;
 	// To make the picture not squishy
-	private AspectRatioFitter arf;
+	private AspectRatioFitter _arf;
 
 	// Use this for initialization
-	void Start() {
-		if (WebCamTexture.devices.Length != 0) {
-			// Get the components that are attached to this GameObject
-			arf = GetComponent<AspectRatioFitter>();
-			image = GetComponent<RawImage>();
+	private void Start() {
+		if (WebCamTexture.devices.Length == 0)
+			return;
+		// Get the components that are attached to this GameObject
+		_arf = GetComponent<AspectRatioFitter>();
+		_image = GetComponent<RawImage>();
 
-			// Make a new WebCamTexture that matches our screen width and height
-			// Divide by 4 to reduce the quality to increase the framerate. Really important for Android phones. iOS devices are magically good at this somehow
-			// Can maybe use 480x640 instead?
-			#if UNITY_ANDROID
-				phoneCamera = new WebCamTexture(Screen.width / 4, Screen.height / 4);
-			#else
-				phoneCamera = new WebCamTexture(Screen.width, Screen.height);
-			#endif
-			// Set the texture of the RawImage to the WebCamTexture
-			image.texture = phoneCamera;
-			// Turn on the camera
-			//phoneCamera.requestedFPS = 30;
-			phoneCamera.Play();
-		}
+		// Make a new WebCamTexture that matches our screen width and height
+		// Divide by 4 to reduce the quality to increase the framerate. Really important for Android phones. iOS devices are magically good at this somehow
+		// Can maybe use 480x640 instead?
+#if UNITY_ANDROID
+		_phoneCamera = new WebCamTexture(Screen.width / 4, Screen.height / 4);
+#else
+		phoneCamera = new WebCamTexture(Screen.width, Screen.height);
+#endif
+		// Set the texture of the RawImage to the WebCamTexture
+		_image.texture = _phoneCamera;
+		// Turn on the camera
+		//phoneCamera.requestedFPS = 30;
+		_phoneCamera.Play();
 	}
 
 	// Update is called once per frame
-	void Update() {
+	private void Update() {
 		if (WebCamTexture.devices.Length == 0) {
 			return;
 		}
 		// If the camera rotation is wrong, fix it
-		float cwNeeded = -phoneCamera.videoRotationAngle;
-		if (phoneCamera.videoVerticallyMirrored)
+		float cwNeeded = -_phoneCamera.videoRotationAngle;
+		if (_phoneCamera.videoVerticallyMirrored)
 			cwNeeded += 180f;
-		image.rectTransform.localEulerAngles = new Vector3(0f, 0f, cwNeeded);
+		_image.rectTransform.localEulerAngles = new Vector3(0f, 0f, cwNeeded);
 
 		// Calculate the camera's aspect ratio
-		float videoRatio = (float) phoneCamera.width / (float) phoneCamera.height;
+		float videoRatio = _phoneCamera.width / (float) _phoneCamera.height;
 		// Set the aspect ratio of the displaying image to the camera's aspect ratio to fix distortion problems
-		arf.aspectRatio = videoRatio;
+		_arf.aspectRatio = videoRatio;
 
-		// If the videofeed is vertically mirrored
-		if (phoneCamera.videoVerticallyMirrored) {
-			// Flip the image
-			image.uvRect = new Rect(1, 0, -1, 1);
-		} else {
-			// Otherwise draw it as it is
-			image.uvRect = new Rect(0, 0, 1, 1);
-		}
+		// If the videofeed is vertically mirrored flip it, else let it be.
+		_image.uvRect = _phoneCamera.videoVerticallyMirrored ? new Rect(1, 0, -1, 1) : new Rect(0, 0, 1, 1);
 	}
 
 	// A button on screen that plays or pauses the camera
-	void OnGUI() {
-		if (GUI.Button(new Rect(10, Screen.height / 2 - 100, Screen.width / 10, Screen.height / 10), "Toggle Camera")) {
-			if (phoneCamera.isPlaying) {
-				phoneCamera.Pause();
-			} else {
-				phoneCamera.Play();
-			}
+	private void OnGUI() {
+		if (
+			!GUI.Button(new Rect(10, Screen.height / 2 - 100, Screen.width / 10f, height: Screen.height / 10f), "Toggle Camera"))
+			return;
+		if (_phoneCamera.isPlaying) {
+			_phoneCamera.Pause();
+		} else {
+			_phoneCamera.Play();
 		}
 	}
 }

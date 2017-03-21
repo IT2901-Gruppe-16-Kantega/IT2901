@@ -1,117 +1,69 @@
 ﻿using UnityEngine;
 
 public class ManualCalibration : MonoBehaviour {
-	public float perspectiveZoomSpeed = 0.5f;        // The rate of change of the field of view in perspective mode.
-	public float orthoZoomSpeed = 0.5f;        // The rate of change of the orthographic size in orthographic mode.
-	[Range(0.01f, 1)]
-	public float rotationDampening = 0.8f;
-	private float totalRotation = 0.0f;
-	private float rotationThreshold = 20;
-	[Range(-90f, 90f)]
-	private float rotationAmountCamera = 0;
-	private float totalPinch = 0;
-	private float pinchThreshold = 50;
-	private bool isRotating = false;
-	private bool isZooming = false;
+	public float PerspectiveZoomSpeed = 0.5f;        // The rate of change of the field of view in perspective mode.
 
-	[SerializeField] private GyroscopeCamera gyroCam;
+	private const float RotationDampening = 0.8f; // To dampen the rotation
+	private float _totalRotation;
+	private const float RotationThreshold = 20;
+	private bool _isRotating;
 
-	void Start() {
-		gyroCam = GetComponent<GyroscopeCamera>();
+	private float _cameraRotationOffset;
+	private const float PinchDampening = 0.1f; // To dampen the pinching
+	private float _totalPinch;
+	private const float PinchThreshold = 50;
+	private bool _isZooming;
+
+	[SerializeField] private GyroscopeCamera _gyroCam;
+
+	private void Start() {
+		_gyroCam = GetComponent<GyroscopeCamera>();
 	}
 
 
-	void Update()
-	{
-		/*
-		Debug.Log (Input.touchCount);
-		// If there are two touches on the device...
-		if (Input.touchCount == 2) {
-			gyroCam.calibrating = true;
-
-			// Store both touches.
-			Touch touchZero = Input.GetTouch (0);
-			Touch touchOne = Input.GetTouch (1);
-
-			// Find the position in the previous frame of each touch.
-			Vector2 touchZeroPrevPos = touchZero.position - touchZero.deltaPosition;
-			Vector2 touchOnePrevPos = touchOne.position - touchOne.deltaPosition;
-			Vector2 previousPositionDirection = touchZeroPrevPos - touchOnePrevPos;
-			Vector2 currentPositionDirection = touchZero.position - touchOne.position;
-
-			//Vector2 previousPositionDirection = (touchZero.position.magnitude > touchOne.position.magnitude) ? (touchZeroPrevPos - touchOnePrevPos) : (touchOnePrevPos - touchZeroPrevPos);
-			//Vector2 currentPositionDirection = (touchZero.position.magnitude > touchOne.position.magnitude) ? (touchZero.position - touchOne.position) : (touchOne.position - touchZero.position);
-
-			Vector2 previousPosition = touchZeroPrevPos - touchOnePrevPos;
-			Vector2 currentPosition = touchZero.position - touchOne.position;
-			float previousDirection = Vector2.Angle (touchZeroPrevPos, touchOnePrevPos);
-			float currentDirection = Vector2.Angle (touchZero.position, touchOne.position);
-			Debug.Log ("previousDirection: " + previousDirection);
-			Debug.Log ("currentDirection: " + currentDirection);
-
-			float rotation = Vector2.Angle(previousPositionDirection,currentPositionDirection);
-			// some code to find whether the angle is positive or negative?
-
-			if (previousPositionDirection.y > currentPositionDirection.y) rotation*=(-1);
-
-			//gyroCam.rotation = rotation;
-			//transform.RotateAround (transform.position, transform.up, rotation);
-			transform.Rotate(0,rotation,0, Space.World);
-			//sDebug.Log (rotation);
-
-		} else {
-			gyroCam.calibrating = false;
-		}
-		*/
+	private void Update() {
+		// If we dont have two fingers on the screen, reset total variables and set everything to false.
 		if (Input.touchCount != 2) {
-			totalRotation = 0;
-			totalPinch = 0;
-			gyroCam.calibrating = false;
-			isRotating = false;
-			isZooming = false;
+			_totalRotation = 0;
+			_totalPinch = 0;
+			_gyroCam.Calibrating = false;
+			_isRotating = false;
+			_isZooming = false;
 		} else {
-			gyroCam.calibrating = true;
+		// If we have two fingers on the screen, calibrate
+			_gyroCam.Calibrating = true;
 		}
 
-		if (!gyroCam.calibrating) {
-			totalRotation = 0;
-			totalPinch = 0;
+		// Reset total values and return
+		if (!_gyroCam.Calibrating) {
+			_totalRotation = 0;
+			_totalPinch = 0;
 			return;
 		}
 
-		float pinchAmount = 0;
-		Quaternion desiredRotation = transform.rotation;
-		float rotationAmount = 0.0f;
+		// Calculate angle and pinch
+		DetectTouchMovement.Calculate();
 
-		DetectTouchMovement.Calculate ();
-
-		totalPinch += Mathf.Abs (DetectTouchMovement.pinchDistanceDelta);
-		if (totalPinch >= pinchThreshold && !isRotating) { //Zoom
-			isZooming = true;
-			pinchAmount = DetectTouchMovement.pinchDistanceDelta;
-			Camera.main.fieldOfView -= pinchAmount*0.1f;
-			Camera.main.fieldOfView = Mathf.Clamp (Camera.main.fieldOfView, 1f, 60f);
+		_totalPinch += Mathf.Abs(DetectTouchMovement.PinchDistanceDelta);
+		// If _totalPinch crosses the threshold and we arent rotating, zoom
+		if (_totalPinch >= PinchThreshold && !_isRotating) { //Zoom
+			_isZooming = true;
+			float pinchAmount = DetectTouchMovement.PinchDistanceDelta * PinchDampening;
+			Camera.main.fieldOfView -= pinchAmount;
+			Camera.main.fieldOfView = Mathf.Clamp(Camera.main.fieldOfView, 1f, 60f);
 		}
 
-		totalRotation += Mathf.Abs (DetectTouchMovement.turnAngleDelta);
-		Debug.Log (totalRotation);
-		if (totalRotation >= rotationThreshold && ! isZooming) { // Rotate
-			isRotating = true;
-			//Vector3 rotationDeg = Vector3.zero;
-			//rotationDeg.y = -DetectTouchMovement.turnAngleDelta;
-			//desiredRotation *= Quaternion.Euler (rotationDeg);
-			rotationAmount = DetectTouchMovement.turnAngleDelta * rotationDampening;
-			transform.Rotate( 0, rotationAmount, 0, Space.World);
-			rotationAmountCamera += rotationAmount;
+		_totalRotation += Mathf.Abs(DetectTouchMovement.TurnAngleDelta);
+		// If _totalRotation crosses the threshold and we arent zooming, rotate
+		if (_totalRotation >= RotationThreshold && !_isZooming) { // Rotate
+			_isRotating = true;
+			float rotationAmount = DetectTouchMovement.TurnAngleDelta * RotationDampening;
+			transform.Rotate(0, rotationAmount, 0, Space.World);
+			_cameraRotationOffset += rotationAmount;
 		}
-		rotationAmountCamera = Mathf.Clamp(rotationAmountCamera, -90f, 90f);
-		gyroCam.rotation = rotationAmountCamera;
-
+		// Force rotation to be between -90 and 90
+		_cameraRotationOffset = Mathf.Clamp(_cameraRotationOffset, -90f, 90f);
+		// Store rotation to _gyroCam
+		_gyroCam.Rotation = _cameraRotationOffset;
 	}
-	// A button on screen that plays or pauses the camera
-	/*void OnGUI() {
-		if (GUI.Button(new Rect(10, Screen.height / 2 + 100, Screen.width / 10, Screen.height / 10), "Manual Calibration")) {
-			gyroCam.calibrating = !gyroCam.calibrating;
-		}
-	}*/
 }

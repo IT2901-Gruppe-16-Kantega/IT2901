@@ -1,42 +1,50 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 
 public class RoadGenerator : MonoBehaviour {
 
-	public Material matRoad;
+	public Material RoadMaterial;
 
 	public GameObject RoadsParent;
 
 	[SerializeField]
-	private APIWrapper apiWrapper;
+	private ApiWrapper _apiWrapper;
 
-	void Start() {
-		apiWrapper = GetComponent<APIWrapper>();
+	private void Start() {
+		_apiWrapper = GetComponent<ApiWrapper>();
 	}
 
 	public void FetchRoad() {
-		apiWrapper.FetchObjects(532, GPSManager.myLocation, objects => {
-			CreateRoadMesh(objects);
-		});
+		string localData = LocalStorage.GetData("roads.json");
+		if (string.IsNullOrEmpty(localData)) {
+			_apiWrapper.FetchObjects(532, GpsManager.MyLocation, CreateRoadMesh);
+		} else {
+			List<Objekt> roadList = new List<Objekt>();
+			// Make a new RootObject and parse the json data from the request
+			RootObject data = JsonUtility.FromJson<RootObject>(localData);
+
+			// Go through each Objekter in the data.objekter (the road objects)
+			foreach (Objekt obj in data.objekter) {
+				// Add the location to our roadObjectList
+				roadList.Add(_apiWrapper.ParseObject(obj));
+			}
+			CreateRoadMesh(roadList);
+		}
 	}
 
 	public void CreateRoadMesh(List<Objekt> roads) {
+		float height = 0.0000f;
 		foreach (Objekt road in roads) {
-
-			float height = 0.0000f;
 			GameObject roadObject = new GameObject("Road");
 			roadObject.transform.parent = RoadsParent.transform;
 
-			Vector3 nextPosition = Vector3.zero;
-
 			List<Vector3> vertices = new List<Vector3>();
 			for (int i = 0; i < road.parsedLocation.Count; i++) {
-				var coords = road.parsedLocation[i];
+				GpsManager.GpsLocation coords = road.parsedLocation[i];
 
 				Vector3 location = HelperFunctions.GetPositionFromCoords(coords);
 
-				float roadWidth = 15f;
+				const float roadWidth = 15f;
 
 				Quaternion rotation;
 				if (i + 1 < road.parsedLocation.Count) {
@@ -80,7 +88,7 @@ public class RoadGenerator : MonoBehaviour {
 
 			// Create a mesh renderer for the mesh to show
 			MeshRenderer meshRenderer = roadObject.AddComponent<MeshRenderer>();
-			meshRenderer.material = matRoad;
+			meshRenderer.material = RoadMaterial;
 			meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 			
             height -= 0.001f;

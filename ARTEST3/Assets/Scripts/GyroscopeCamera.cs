@@ -5,34 +5,34 @@ Translates the device's gyroscope attitude into camera rotations
 */
 public class GyroscopeCamera : MonoBehaviour {
 	// Gyroscope variables
-	private Gyroscope gyro;
-	private bool gyroIsSupported;
-	public bool calibrating = false;
-	public float rotation = 0;
+	private Gyroscope _gyro;
+	private bool _gyroIsSupported;
+	public bool Calibrating;
+	public float Rotation;
 
 	// For filtering gyro data
-	private const float lowPassFactor = 0.8f; // A float between 0.01f to 0.99f. Less means more dampening
+	private const float LowPassFactor = 0.8f; // A float between 0.01f to 0.99f. Less means more dampening
 
 	// Different rotations based on the phone's display mode
-	private readonly Quaternion baseIdentity = Quaternion.Euler(90, 0, 0);
+	private readonly Quaternion _baseIdentity = Quaternion.Euler(90, 0, 0);
 
 	// Variables for fixing the gyroscope
-	private Quaternion cameraBase = Quaternion.identity;
-	private Quaternion calibration = Quaternion.identity;
-	private Quaternion baseOrientation = Quaternion.Euler(90, 0, 0);
-	private Quaternion baseOrientationRotationFix = Quaternion.identity;
+	private Quaternion _cameraBase = Quaternion.identity;
+	private Quaternion _calibration = Quaternion.identity;
+	private Quaternion _baseOrientation = Quaternion.Euler(90, 0, 0);
+	private readonly Quaternion _baseOrientationRotationFix = Quaternion.identity;
 
-	private Quaternion referenceRotation = Quaternion.identity;
+	private Quaternion _referenceRotation = Quaternion.identity;
 
-	void Start() {
+	private void Start() {
 		// Check if gyroscope is supported on this device
-		gyroIsSupported = SystemInfo.supportsGyroscope;
+		_gyroIsSupported = SystemInfo.supportsGyroscope;
 
-		if (gyroIsSupported) {
+		if (_gyroIsSupported) {
 			// Get the gyroscope from input
-			gyro = Input.gyro;
+			_gyro = Input.gyro;
 			// Enable it
-			gyro.enabled = true;
+			_gyro.enabled = true;
 			// Calibrate stuff
 			ResetBaseOrientation();
 			UpdateCalibration(true);
@@ -43,26 +43,18 @@ public class GyroscopeCamera : MonoBehaviour {
 		}
 	}
 
-	void Update() {
+	private void Update() {
 		// Can't do anything if we don't have a gyro.
-		if (!gyroIsSupported || calibrating) {
+		if (!_gyroIsSupported || Calibrating) {
 			return;
 		}
+		Vector3 gyroTemp = _gyro.attitude.eulerAngles;
+		gyroTemp.y += Rotation;
+
 		// Slerp is spherical linear interpolation, which means that our movement is smoothed instead of jittering
-		Vector3 gyroTemp = gyro.attitude.eulerAngles;
-		gyroTemp.y += rotation;
-
-
-		/*if (Mathf.Abs (gyro.rotationRate.y) > 0.3f) {
-			Debug.Log (gyro.rotationRate);
-			gyroTemp.y = gyro.attitude.eulerAngles.y;
-		}
-		*/
-
-
 		transform.rotation = Quaternion.Slerp(transform.rotation,
-			cameraBase * (ConvertRotation(referenceRotation * gyro.attitude)), lowPassFactor);
-		transform.Rotate (0, rotation, 0, Space.World);
+			_cameraBase * (ConvertRotation(_referenceRotation * _gyro.attitude)), LowPassFactor);
+		transform.Rotate(0, Rotation, 0, Space.World);
 		//transform.rotation = Quaternion.Euler (transform.rotation.eulerAngles.x, gyroTemp.y, transform.rotation.eulerAngles.z);
 		//transform.rotation = Quaternion.Slerp(transform.rotation, cameraBase * (ConvertRotation(referenceRotation * Quaternion.Euler(gyroTemp))), lowPassFactor);
 
@@ -72,42 +64,35 @@ public class GyroscopeCamera : MonoBehaviour {
 	// Update the gyroscope calibration
 	private void UpdateCalibration(bool onlyHorizontal) {
 		if (onlyHorizontal) {
-			var fw = (Input.gyro.attitude) * (-Vector3.forward);
+			Vector3 fw = (Input.gyro.attitude) * (-Vector3.forward);
 			fw.z = 0;
-			if (fw == Vector3.zero) {
-				calibration = Quaternion.identity;
-			} else {
-				calibration = (Quaternion.FromToRotation(baseOrientationRotationFix * Vector3.up, fw));
-			}
+			_calibration = fw == Vector3.zero ? Quaternion.identity : (Quaternion.FromToRotation(_baseOrientationRotationFix * Vector3.up, fw));
 		} else {
-			calibration = Input.gyro.attitude;
+			_calibration = Input.gyro.attitude;
 		}
 	}
 
 
 	private void UpdateCameraBaseRotation(bool onlyHorizontal) {
 		if (onlyHorizontal) {
-			var fw = transform.forward;
+			Vector3 fw = transform.forward;
 			fw.y = 0;
-			if (fw == Vector3.zero) {
-				cameraBase = Quaternion.identity;
-			} else {
-				cameraBase = Quaternion.FromToRotation(Vector3.forward, fw);
-			}
+			_cameraBase = fw == Vector3.zero ? Quaternion.identity : Quaternion.FromToRotation(Vector3.forward, fw);
 		} else {
-			cameraBase = transform.rotation;
+			_cameraBase = transform.rotation;
 		}
 	}
 
+	// Flips the gyroscope attitude
 	private static Quaternion ConvertRotation(Quaternion q) {
 		return new Quaternion(q.x, q.y, -q.z, -q.w);
 	}
 
 	private void ResetBaseOrientation() {
-		baseOrientation = baseOrientationRotationFix * baseIdentity;
+		_baseOrientation = _baseOrientationRotationFix * _baseIdentity;
 	}
 
 	private void RecalculateReferenceRotation() {
-		referenceRotation = Quaternion.Inverse(baseOrientation) * Quaternion.Inverse(calibration);
+		_referenceRotation = Quaternion.Inverse(_baseOrientation) * Quaternion.Inverse(_calibration);
 	}
 }

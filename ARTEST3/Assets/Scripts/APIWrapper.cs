@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
+using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class APIWrapper : MonoBehaviour {
+public class ApiWrapper : MonoBehaviour {
 
 	// The API base url
-	const string API_URL = "https://www.vegvesen.no/nvdb/api/v2/";
-
-	// We want numbers and periods, so this regex searches for the exact opposite to use as delimiters
-	string regexPattern = @"[^0-9.]+";
+	private const string ApiUrl = "https://www.vegvesen.no/nvdb/api/v2/";
 
 	/* 
 	The deviation between the latitude and longitude of your current location
@@ -19,89 +16,59 @@ public class APIWrapper : MonoBehaviour {
 	means that you extend the area around you. Because of how coordinates work,
 	to get a square, longitude needs to have a bigger delta.
 	*/
-	private float deltaLat = 0.0015f;
-	private float deltaLong = 0.0025f;
+	private const float DeltaLat = 0.0015f;
+	private const float DeltaLong = 0.0025f;
 
-	public Text debugText;
+	public Text DebugText;
 
-	private Dictionary<string, string> CreateHeaders() {
-		Dictionary<string, string> headers = new Dictionary<string, string>();
-
-		// Want it in JSON format
-		headers.Add("Accept", "application/vnd.vegvesen.nvdb-v2+json");
-
-		// To identify ourselves
-		headers.Add("X-Client", "Client");
-		headers.Add("X-Kontaktperson", "Contact");
-
+	private static Dictionary<string, string> CreateHeaders() {
+		Dictionary<string, string> headers = new Dictionary<string, string>
+		{
+			{"Accept", "application/vnd.vegvesen.nvdb-v2+json"},
+			{"X-Client", "Client"},
+			{"X-Kontaktperson", "Contact"}
+		};
 		return headers;
 	}
 
 	// Use this to create and return a fetch request
 	private WWW CreateFetchRequest(int id, double latitude, double longitude) {
 		// The query to fetch road signs
-		string url = API_URL + "vegobjekter/" + id + "?inkluder=geometri,egenskaper,relasjoner&srid=4326&kartutsnitt=" +
-			(longitude - deltaLong) + "," +
-			(latitude - deltaLat) + "," +
-			(longitude + deltaLong) + "," +
-			(latitude + deltaLat);
+		string url = ApiUrl + "vegobjekter/" + id + "?inkluder=geometri,egenskaper,relasjoner&srid=4326&kartutsnitt=" +
+			(longitude - DeltaLong) + "," +
+			(latitude - DeltaLat) + "," +
+			(longitude + DeltaLong) + "," +
+			(latitude + DeltaLat);
 		Debug.Log(url);
 
 		// Make a WWW (similar to fetch)       
 		return new WWW(url, null, CreateHeaders());
 	}
 
-	private WWW CreateSingleFetchRequest(int id) {
-		// The query to fetch road signs
-		string url = API_URL + "vegobjekter/96/" + id + "?srid=4326&inkluder=alle";
-		Debug.Log(url);
-
-		// Make a WWW (similar to fetch)       
-		return new WWW(url, null, CreateHeaders());
-	}
-
-	public void FetchObjectTypes() {
-		string url = API_URL + "vegobjekttyper";
-		WWW www = new WWW(url, null, CreateHeaders());
-
-		StartCoroutine(WaitForObjectTypeRequest(www, objectTypes => {
-			Debug.Log(objectTypes.Count);
-		}));
-
-	}
-
-	public void FetchObjects(int id, GPSManager.GPSLocation location, Action<List<Objekt>> callback) {
-		WWW www = CreateFetchRequest(id, location.latitude, location.longitude);
+	public void FetchObjects(int id, GpsManager.GpsLocation location, Action<List<Objekt>> callback) {
+		WWW www = CreateFetchRequest(id, location.Latitude, location.Longitude);
 
 		// Start a coroutine that tries to get the data from the API
 		StartCoroutine(WaitForRequest(www, objects => {
 			callback(objects);
+			if (!string.IsNullOrEmpty(www.error))
+				return;
+			// If there is no error and the requested object isnt a road
+			// Quick and dirty, only if the requested id is 532. Obviously should do this someplace else
+			if (id == 532) {
+				// Try to save the data
+				Debug.Log(LocalStorage.SaveData("roads.json", www.text) ? "FILE SAVED" : "The file failed to save.");
+			} else {
+				// Try to save the data
+				Debug.Log(LocalStorage.SaveData("data.json", www.text) ? "FILE SAVED" : "The file failed to save.");
+			}
 		}));
-	}
-
-	public void FetchObject(int id, Action<Objekt> callback) {
-		WWW www = CreateSingleFetchRequest(id);
-
-		StartCoroutine(WaitForSingleRequest(www, obj => {
-			callback(obj);
-		}));
-	}
-
-	IEnumerator WaitForSingleRequest(WWW www, Action<Objekt> callback) {
-		yield return www;
-
-		if (!string.IsNullOrEmpty(www.error)) {
-			Debug.Log("WWW Error: " + www.error);
-		} else {
-			Objekt data = JsonUtility.FromJson<Objekt>(www.text);
-			callback(data);
-		}
 	}
 
 	// The coroutine that gets the data from the API
 	// Parameters:
 	//      WWW www -> The request URL with the correct headers
-	IEnumerator WaitForRequest(WWW www, Action<List<Objekt>> callback) {
+	private IEnumerator WaitForRequest(WWW www, Action<List<Objekt>> callback) {
 		// Request data from the API and come back when it's done
 		yield return www;
 
@@ -112,8 +79,6 @@ public class APIWrapper : MonoBehaviour {
 			List<Objekt> roadObjectList = new List<Objekt>();
 
 			// Else handle the data
-			// For debugging purposes
-			//Debug.Log(roadObjectList.Count);
 			Debug.Log("WWW Ok!: " + www.text);
 
 			// Make a new RootObject and parse the json data from the request
@@ -121,69 +86,41 @@ public class APIWrapper : MonoBehaviour {
 
 			// Go through each Objekter in the data.objekter (the road objects)
 			foreach (Objekt obj in data.objekter) {
-				// For debugging purposes
-				//Debug.Log(oLocation.latitude + " - " + oLocation.longitude + " - " + oLocation.altitude);
-				//Debug.Log(oLocation.ToString());
-
 				// Add the location to our roadObjectList
 				roadObjectList.Add(ParseObject(obj));
 			}
 			callback(roadObjectList);
-			if(LocalStorage.SaveData(www.text)) {
-				Debug.Log("FILE SAVED");
-			} else {
-				Debug.Log("Priness is in another castle");
-			}
-			// For debuggin purposes
-			//			Debug.Log(roadObjectList.Count);
-			//debugText.text = roadObjectList.Count + " objects";
 		}
 	}
 
-    private Objekt ParseObject(Objekt objekt) {
-        // For debugging purposes
-        //Debug.Log(obj.geometri.wkt);
+	public Objekt ParseObject(Objekt objekt) {
+		// For debugging purposes
+		//Debug.Log(obj.geometri.wkt);
 
-        string wkt = objekt.geometri.wkt;
-        wkt = wkt.Substring(wkt.IndexOf("(") + 1).Trim(')');
+		string wkt = objekt.geometri.wkt;
+		wkt = wkt.Substring(wkt.IndexOf("(", StringComparison.Ordinal) + 1).Trim(')');
 
-        //[63.429624610409434, 10.393547899740911, 10.9]
-        string[] wktArray = wkt.Split(',');
+		//[63.429624610409434, 10.393547899740911, 10.9]
+		string[] wktArray = wkt.Split(',');
 
-        List<GPSManager.GPSLocation> coordinates = new List<GPSManager.GPSLocation>();
-        foreach(string s in wktArray) {
-            string[] sArray = s.Trim().Split(' ');
-            double latitude;
-            double.TryParse(sArray[0], out latitude);
+		List<GpsManager.GpsLocation> coordinates = new List<GpsManager.GpsLocation>();
+		foreach (string s in wktArray) {
+			string[] sArray = s.Trim().Split(' ');
+			double latitude;
+			double.TryParse(sArray[0], out latitude);
 
-            double longitude;
-            double.TryParse(sArray[1], out longitude);
+			double longitude;
+			double.TryParse(sArray[1], out longitude);
 
-            if(sArray.Length == 2) {
-                coordinates.Add(new GPSManager.GPSLocation(latitude, longitude));
-            }
-            else {
-                double altitude = double.Parse(sArray[2]);
-                coordinates.Add(new GPSManager.GPSLocation(latitude, longitude, altitude));
-            }
-        }
-        objekt.parsedLocation = coordinates;
-        return objekt;
-    }
-
-	// Much the same as WaitForRequest
-	IEnumerator WaitForObjectTypeRequest(WWW www, Action<List<ObjectType>> callback) {
-		yield return www;
-
-		if (!string.IsNullOrEmpty(www.error)) {
-			Debug.Log("WWW Error: " + www.error);
-		} else {
-			// Need to wrap the returned text into a dictionary key. That's just how JsonUtility works
-			string wrapper = string.Format("{{ \"{0}\": {1}}}", www.text, "vegobjekttyper");
-
-			var data = JsonUtility.FromJson<RootObjectType>(wrapper);
-			callback(data.vegobjekttyper);
+			if (sArray.Length == 2) {
+				coordinates.Add(new GpsManager.GpsLocation(latitude, longitude));
+			} else {
+				double altitude = double.Parse(sArray[2]);
+				coordinates.Add(new GpsManager.GpsLocation(latitude, longitude, altitude));
+			}
 		}
+		objekt.parsedLocation = coordinates;
+		return objekt;
 	}
 }
 
@@ -191,7 +128,9 @@ public class APIWrapper : MonoBehaviour {
 // This only works for road signs (I think)
 // TODO find a way to parse all types of data from the API instead of just this.
 // As it is right now, it works.
+// [SuppressMessage("ReSharper", "InconsistentNaming")] is to supress Visual Studio plugin (ReSharper)  messages due to strange naming conventions
 [Serializable]
+[SuppressMessage("ReSharper", "InconsistentNaming")]
 public class Geometri {
 	public string wkt;
 	public int srid;
@@ -199,6 +138,7 @@ public class Geometri {
 }
 
 [Serializable]
+[SuppressMessage("ReSharper", "InconsistentNaming")]
 public class Objekt {
 	public int id;
 	public string href;
@@ -206,11 +146,12 @@ public class Objekt {
 	public List<Egenskaper> egenskaper;
 	public Relasjoner relasjoner;
 
-	public List<GPSManager.GPSLocation> parsedLocation;
+	public List<GpsManager.GpsLocation> parsedLocation;
 	public List<Objekt> plates;
 }
 
 [Serializable]
+[SuppressMessage("ReSharper", "InconsistentNaming")]
 public class Egenskaper {
 	public int id;
 	public string navn;
@@ -222,6 +163,7 @@ public class Egenskaper {
 }
 
 [Serializable]
+[SuppressMessage("ReSharper", "InconsistentNaming")]
 public class Enhet {
 	public int id;
 	public string navn;
@@ -229,18 +171,21 @@ public class Enhet {
 }
 
 [Serializable]
+[SuppressMessage("ReSharper", "InconsistentNaming")]
 public class Relasjoner {
 	public List<Barn> barn;
 	public List<Foreldre> foreldre;
 }
 
 [Serializable]
+[SuppressMessage("ReSharper", "InconsistentNaming")]
 public class Relasjon {
 	public RelasjonType type;
-	public List<int> vegobjekter;
+	//public List<int> vegobjekter;
 }
 
 [Serializable]
+[SuppressMessage("ReSharper", "InconsistentNaming")]
 public class RelasjonType {
 	public int id;
 	public string navn;
@@ -255,12 +200,14 @@ public class Foreldre : Relasjon {
 }
 
 [Serializable]
+[SuppressMessage("ReSharper", "InconsistentNaming")]
 public class Neste {
 	public string start;
 	public string href;
 }
 
 [Serializable]
+[SuppressMessage("ReSharper", "InconsistentNaming")]
 public class Metadata {
 	public int antall;
 	public int returnert;
@@ -268,17 +215,20 @@ public class Metadata {
 }
 
 [Serializable]
+[SuppressMessage("ReSharper", "InconsistentNaming")]
 public class RootObject {
 	public List<Objekt> objekter;
 	public Metadata metadata;
 }
 
 [Serializable]
+[SuppressMessage("ReSharper", "InconsistentNaming")]
 public class RootSingleObject {
 	public Objekt objekt;
 }
 
 [Serializable]
+[SuppressMessage("ReSharper", "InconsistentNaming")]
 public class ObjectType {
 	public int id;
 	public string navn;
@@ -291,6 +241,7 @@ public class ObjectType {
 }
 
 [Serializable]
+[SuppressMessage("ReSharper", "InconsistentNaming")]
 public class RootObjectType {
 	public List<ObjectType> vegobjekttyper;
 }
