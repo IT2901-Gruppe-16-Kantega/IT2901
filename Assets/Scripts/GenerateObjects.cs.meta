@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 72c9e33c706d8414aa00b34f09a78596
+timeCreated: 1488793141
+licenseType: Free
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences:
+  - blueSign: {fileID: 1000011228351072, guid: fea97a45410e9304cb44cfcf21977a9e, type: 2}
+  - redSign: {fileID: 1000011734247030, guid: 78b06275ab71a5c41b9c7e47ccf992e3, type: 2}
+  - redTriangle: {instanceID: 0}
+  - apiWrapper: {instanceID: 0}
+  - matRoad: {fileID: 2100000, guid: f4dab8dcc164b4e3cb04e033f78b1e02, type: 2}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
