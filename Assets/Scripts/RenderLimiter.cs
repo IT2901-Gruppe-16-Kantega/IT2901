@@ -8,13 +8,13 @@ public class RenderLimiter : MonoBehaviour {
 	private void Update() {
 		foreach (Transform sign in _signs.transform) {
 			// Reactivate object if not activated
-			if (!sign.gameObject.activeInHierarchy)
+			if (!sign.gameObject.activeSelf)
 				sign.gameObject.SetActive(true);
 			sign.gameObject.SetActive(Physics.Raycast(transform.position, sign.position - transform.position, SphereRadius)); // Shoot a ray to the sign and activate if ray is long enough
 		}
 		foreach (Transform road in _roads.transform) {
 			// Reactivate object if not activated
-			if (!road.gameObject.activeInHierarchy)
+			if (!road.gameObject.activeSelf)
 				road.gameObject.SetActive(true);
 			road.gameObject.SetActive(Physics.Raycast(transform.position, road.position - transform.position, SphereRadius * 2)); // Shoot a ray to the road and activate if ray is long enough
 		}
