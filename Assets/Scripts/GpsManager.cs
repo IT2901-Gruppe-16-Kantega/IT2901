@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using UnityEngine;
-using UnityEngine.UI;
 
 /*
 Handles the GPS on the phone
@@ -27,32 +26,13 @@ public class GpsManager : MonoBehaviour {
 	private LocationService _service;
 	public float GpsAccuracy = 5f;
 	public float GpsUpdateInterval = 5f;
-	public Slider AccuracySlider;
-	public Slider IntervalSlider;
-	public Text AccuracyText;
-	public Text IntervalText;
-
-	public Text DebugText;
-
-	public void ChangeAccuracy() {
-		GpsAccuracy = AccuracySlider.value;
-		AccuracyText.text = AccuracySlider.value.ToString();
-	}
-
-	public void ChangeInterval() {
-		GpsUpdateInterval = IntervalSlider.value;
-		IntervalText.text = IntervalSlider.value.ToString();
-	}
 
 	private void Start() {
-		ChangeAccuracy();
-		ChangeInterval();
 		// Set the service variable to the phones location manager (Input.location)
 		_service = Input.location;
 		// If the gps service is not enabled by the user
 		if (!_service.isEnabledByUser) {
 			Debug.Log("Location Services not enabled by user");
-			DebugText.text = ("Location Services not enabled by user");
 			InitialPositionUpdated = true;
 		} else {
 			// Start the service.
@@ -74,20 +54,17 @@ public class GpsManager : MonoBehaviour {
 
 		// If we timed out
 		if (_waitTime >= MaxWait) {
-			DebugText.text = ("Timed out");
 			yield return new WaitForSeconds(1);
 		}
 
 		// If the service failed, try again
 		if (_service.status == LocationServiceStatus.Failed) {
-			DebugText.text = ("Unable to determine device location");
 			yield return new WaitForSeconds(1);
 			if (_tries >= MaxTries)
 				yield break;
 			_tries++;
 			StartCoroutine(StartLocation());
 		} else {
-			DebugText.text = ("Eyyyyy");
 			// Otherwise, update our location
 			StartCoroutine(GetLocation());
 		}
@@ -111,8 +88,6 @@ public class GpsManager : MonoBehaviour {
 					(float) (System.Math.Sin(bearing) * distance)
 				), Dampening);
 
-		DebugText.text = MyLocation.Latitude + ", " + MyLocation.Longitude;
-		DebugText.text += "\n" + _oldLocation.Latitude + ", " + _oldLocation.Longitude;
 		InitialPositionUpdated = true;
 		// Wait a second to update. Can be removed if wanted, but if it requests updates too quickly, something bad might happen.
 		// Comment to see if it is faster
@@ -149,17 +124,5 @@ public class GpsManager : MonoBehaviour {
 		public override string ToString() {
 			return Latitude + ", " + Longitude + ", " + Altitude;
 		}
-	}
-
-	private void OnGUI() {
-		if (!GUI.Button(new Rect(Screen.width * 0.9f - 10, Screen.height - 150, Screen.width / 10f, Screen.height / 20f),
-				"Restart GPS"))
-			return; // To reduce nesting.
-
-		StopCoroutine(StartLocation());
-		StopCoroutine(GetLocation());
-		_service.Stop();
-		_service.Start(GpsAccuracy, GpsUpdateInterval);
-		StartCoroutine(StartLocation());
 	}
 }

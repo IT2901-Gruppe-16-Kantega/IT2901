@@ -1,18 +1,21 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ObjectSelect : MonoBehaviour {
 
 	//The GameObject that is pressed
 	private GameObject _target;
+	private GameObject _previousTarget;
 
 	// The layers to target
 	private LayerMask _layers;
 
 	private bool _isMouseDrag;
 	private Vector3 _screenPosition;
-	private Vector3 _offset;
 	private Vector3 _startingPoint;
+
+	public Text ObjectText;
 
 
 	// Use this for initialization
@@ -29,34 +32,34 @@ public class ObjectSelect : MonoBehaviour {
 			if (_target != null) {
 				_isMouseDrag = true;
 				_startingPoint = Input.mousePosition;
-				Debug.Log("Old target position :" + _target.transform.position);
 				//Convert the targets world position to screen position.
 				_screenPosition = Camera.main.WorldToScreenPoint(_target.transform.position);
-				// Calculate the offset between the targets position and the mouse pointer / finger position. We use the x and y position of the mouse, but the z position of the target
-				_offset = _target.transform.position - Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, _screenPosition.z));
-				Debug.Log(_offset.ToString());
 			}
 		}
 		if (Input.GetMouseButtonUp(0)) {
 			_isMouseDrag = false;
-			if (_target != null) {
-				RoadObjectManager rom = _target.GetComponent<RoadObjectManager>();
-				Debug.Log("New target position :" + _target.transform.position);
-				// Use the Reverse Haversine formula to update the latitude and longitude
-				// The distance to the target is the magnitude of the targets position vector since we are at 0,0,0 we dont need to subtract it to get the direction
-				double distance = _target.transform.position.magnitude;
-				//distance = System.Math.Round(distance, 10);
-				// The bearing is the arcsin of the targets normalized x value plus PI / 2 (because 
-				double bearing = Mathf.Asin(_target.transform.position.x / (float) distance) + Mathf.PI / 2;
-
-				rom.DeltaDistance = distance - rom.Distance;
-				rom.DeltaBearing = bearing - rom.Bearing;
-				rom.HasBeenMoved = Math.Abs(rom.DeltaDistance) > 0 || Math.Abs(rom.DeltaBearing) > 0;
-			}
 		}
 
 		if (!_isMouseDrag || _target == null)
 			return; // To reduce nesting
+		if (_target != null) {
+			RoadObjectManager rom = _target.GetComponent<RoadObjectManager>();
+			// The distance to the target is the magnitude of the targets position vector since we are at 0,0,0 we dont need to subtract it to get the direction
+			double distance = _target.transform.position.magnitude;
+			// The bearing is the arcsin of the targets normalized x value plus PI / 2 (because 
+			double bearing = Mathf.Asin(_target.transform.position.x / (float) distance) + Mathf.PI / 2;
+
+			rom.DeltaDistance = distance - rom.Distance;
+			rom.DeltaBearing = bearing - rom.Bearing;
+			rom.HasBeenMoved = Math.Abs(rom.DeltaDistance) > 0 || Math.Abs(rom.DeltaBearing) > 0;
+			ObjectText.text =
+				"id: " + rom.Objekt.id + "\n" +
+				"egengeo: " + rom.Objekt.geometri.egengeometri + "\n" +
+				"Skiltnummer: " + rom.Objekt.egenskaper.Find(egenskap => egenskap.id == 5530).verdi + "\n" +
+				"manuelt flyttet: " + rom.HasBeenMoved + "\n" +
+				"avstand flyttet: " + String.Format("{0:F2}m", rom.Distance);
+		}
+
 
 		// Track the mouse pointer / finger position in the x and y axis, using the depth of the target
 		Vector3 currentScreenSpace = new Vector3(Input.mousePosition.x, Input.mousePosition.y, _screenPosition.z);
@@ -93,17 +96,31 @@ public class ObjectSelect : MonoBehaviour {
 
 	private GameObject ReturnClickedObject(out RaycastHit hit) {
 		GameObject newTarget = null;
+		_previousTarget = _target;
 		Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-
 		if (Physics.Raycast(ray, out hit, float.PositiveInfinity, _layers)) {
-			Debug.DrawLine(ray.origin, hit.point);
 			newTarget = hit.collider.gameObject;
-			newTarget.GetComponent<RoadObjectManager>().Selected();
+			RoadObjectManager rom = newTarget.GetComponent<RoadObjectManager>();
+			rom.Selected();
 		}
 		if (newTarget != _target && _target != null) {
 			_target.GetComponent<RoadObjectManager>().UnSelected();
 		}
-		Debug.Log(newTarget);
+		if (newTarget == null) ObjectText.text = "";
 		return newTarget;
+	}
+
+	private void OnGUI() {
+		if (GUI.Button(new Rect(10, Screen.height - 200, 300f, 100f), "Reset posisjon") && _previousTarget != null) { // _previousTarget because we click and that updates the target. This will most likely cause a bug, so be check this if something is wrong.
+			_previousTarget.GetComponent<RoadObjectManager>().ResetPosition();
+			_target = _previousTarget;
+			_target.GetComponent<RoadObjectManager>().Selected();
+			ObjectText.text =
+				"id: " + _previousTarget.GetComponent<RoadObjectManager>().Objekt.id + "\n" +
+				"egengeo: " + _previousTarget.GetComponent<RoadObjectManager>().Objekt.geometri.egengeometri + "\n" +
+				"Skiltnummer: " + _previousTarget.GetComponent<RoadObjectManager>().Objekt.egenskaper.Find(egenskap => egenskap.id == 5530).verdi + "\n" +
+				"manuelt flyttet: " + _previousTarget.GetComponent<RoadObjectManager>().HasBeenMoved + "\n" +
+				"avstand flyttet: " + String.Format("{0:F2}m", _previousTarget.GetComponent<RoadObjectManager>().Distance);
+		}
 	}
 }

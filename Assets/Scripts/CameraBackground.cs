@@ -54,16 +54,4 @@ public class CameraBackground : MonoBehaviour {
 		// If the videofeed is vertically mirrored flip it, else let it be.
 		_image.uvRect = _phoneCamera.videoVerticallyMirrored ? new Rect(1, 0, -1, 1) : new Rect(0, 0, 1, 1);
 	}
-
-	// A button on screen that plays or pauses the camera
-	private void OnGUI() {
-		if (
-			!GUI.Button(new Rect(10, Screen.height / 2 - 100, Screen.width / 10f, height: Screen.height / 10f), "Toggle Camera"))
-			return;
-		if (_phoneCamera.isPlaying) {
-			_phoneCamera.Pause();
-		} else {
-			_phoneCamera.Play();
-		}
-	}
 }

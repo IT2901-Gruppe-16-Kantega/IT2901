@@ -9,6 +9,8 @@ public class RoadObjectManager : MonoBehaviour {
 	[HideInInspector]
 	public Objekt Objekt;
 
+	public TextMesh SignText;
+
 	public Material[] Colors = new Material[3];
 	public Renderer PoleRenderer;
 	public TextMesh DistanceText;
@@ -44,5 +46,10 @@ public class RoadObjectManager : MonoBehaviour {
 
 	public void UnSelected() {
 		PoleRenderer.material = HasBeenMoved ? Colors[2] : Colors[0];
+	}
+
+	public void ResetPosition() {
+		transform.position = HelperFunctions.GetPositionFromCoords(RoadObjectLocation);
+		HasBeenMoved = false;
 	}
 }

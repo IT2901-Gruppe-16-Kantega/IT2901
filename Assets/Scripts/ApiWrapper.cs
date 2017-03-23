@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class ApiWrapper : MonoBehaviour {
 
@@ -18,8 +17,6 @@ public class ApiWrapper : MonoBehaviour {
 	*/
 	private const float DeltaLat = 0.0015f;
 	private const float DeltaLong = 0.0025f;
-
-	public Text DebugText;
 
 	private static Dictionary<string, string> CreateHeaders() {
 		Dictionary<string, string> headers = new Dictionary<string, string>

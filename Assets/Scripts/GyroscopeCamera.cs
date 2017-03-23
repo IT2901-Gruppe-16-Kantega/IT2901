@@ -9,6 +9,9 @@ public class GyroscopeCamera : MonoBehaviour {
 	private bool _gyroIsSupported;
 	public bool Calibrating;
 	public float Rotation;
+	public bool IsCarMode;
+
+	public GameObject User;
 
 	// For filtering gyro data
 	private const float LowPassFactor = 0.8f; // A float between 0.01f to 0.99f. Less means more dampening
@@ -45,7 +48,7 @@ public class GyroscopeCamera : MonoBehaviour {
 
 	private void Update() {
 		// Can't do anything if we don't have a gyro.
-		if (!_gyroIsSupported || Calibrating) {
+		if (!_gyroIsSupported || Calibrating || IsCarMode) {
 			return;
 		}
 		Vector3 gyroTemp = _gyro.attitude.eulerAngles;
@@ -55,10 +58,7 @@ public class GyroscopeCamera : MonoBehaviour {
 		transform.rotation = Quaternion.Slerp(transform.rotation,
 			_cameraBase * (ConvertRotation(_referenceRotation * _gyro.attitude)), LowPassFactor);
 		transform.Rotate(0, Rotation, 0, Space.World);
-		//transform.rotation = Quaternion.Euler (transform.rotation.eulerAngles.x, gyroTemp.y, transform.rotation.eulerAngles.z);
-		//transform.rotation = Quaternion.Slerp(transform.rotation, cameraBase * (ConvertRotation(referenceRotation * Quaternion.Euler(gyroTemp))), lowPassFactor);
-
-		//transform.RotateAround (transform.position, Vector3.up, rotation);
+		User.transform.rotation = Quaternion.AngleAxis(transform.rotation.eulerAngles.y, User.transform.up);
 	}
 
 	// Update the gyroscope calibration

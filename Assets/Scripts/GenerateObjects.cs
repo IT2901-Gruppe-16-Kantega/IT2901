@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class GenerateObjects : MonoBehaviour {
@@ -103,9 +104,20 @@ public class GenerateObjects : MonoBehaviour {
 
 				// Set the parent of the new GameObject to be us (so we dont have a huge list in root)
 				newGameObject.transform.parent = SignsParent.transform;
-				newGameObject.GetComponent<RoadObjectManager>().RoadObjectLocation = location;
-				newGameObject.GetComponent<RoadObjectManager>().UpdateLocation();
-				newGameObject.GetComponent<RoadObjectManager>().Objekt = objekt;
+				RoadObjectManager rom = newGameObject.GetComponent<RoadObjectManager>();
+				rom.RoadObjectLocation = location;
+				rom.UpdateLocation();
+				rom.Objekt = objekt;
+				string[] parts = objekt.egenskaper.Find(egenskap => egenskap.id == 5530).verdi.Split(' ', '-');
+				rom.SignText.text = "";
+				string text = "";
+				foreach (string s in parts) {
+					rom.SignText.text += s + " ";
+					if (rom.SignText.GetComponent<Renderer>().bounds.extents.x > .5) {
+						rom.SignText.text = text.TrimEnd() + "\n" + s + " ";
+					}
+					text = rom.SignText.text;
+				}
 
 				if (objekt.parsedLocation.Count == 1) {
 					newGameObject.transform.position = position;
@@ -130,7 +142,8 @@ public class GenerateObjects : MonoBehaviour {
 	private GameObject GetGameObject(Objekt objekt) {
 		Egenskaper egenskap = objekt.egenskaper.Find(e => e.id == 5530);
 
-		if (egenskap == null) return BlueSign;
+		if (egenskap == null)
+			return BlueSign;
 		int signNumber;
 		int.TryParse(egenskap.verdi.Substring(0, 1), out signNumber);
 
