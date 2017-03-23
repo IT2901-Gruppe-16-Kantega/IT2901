@@ -37,6 +37,7 @@ public class RoadGenerator : MonoBehaviour {
 		foreach (Objekt road in roads) {
 			GameObject roadObject = new GameObject("Road");
 			roadObject.transform.parent = RoadsParent.transform;
+			roadObject.layer = 10;
 
 			List<Vector3> vertices = new List<Vector3>();
 			for (int i = 0; i < road.parsedLocation.Count; i++) {
@@ -58,8 +59,12 @@ public class RoadGenerator : MonoBehaviour {
 				vertices.Add(new Vector3(location.x + deltaX, height, location.z + deltaZ));
 				vertices.Add(new Vector3(location.x - deltaX, height, location.z - deltaZ));
 			}
-
+			roadObject.transform.position = vertices[0] - vertices[vertices.Count - 1];
 			List<int> triangles = new List<int>();
+
+			for (int i = 0; i < vertices.Count; i++) {
+				vertices[i] -= roadObject.transform.position;
+			}
 
 			for (int j = 0; j < vertices.Count / 2 - 1; j++) {
 				triangles.Add(2 * j);
@@ -70,7 +75,7 @@ public class RoadGenerator : MonoBehaviour {
 				triangles.Add((2 * j) + 3);
 				triangles.Add((2 * j) + 2);
 			}
-			roadObject.name = vertices.Count + " vertices, " + (triangles.Count / 3) + " triangles.";
+			roadObject.name = road.parsedLocation[0].ToString() + " - " + road.parsedLocation[road.parsedLocation.Count - 1];
 
 			Mesh mesh = new Mesh();
 
@@ -83,15 +88,14 @@ public class RoadGenerator : MonoBehaviour {
 			for (int i = 0; i < normals.Length; i++)
 				normals[i] = Vector3.up;
 			mesh.normals = normals;
-			
+
 			meshFilter.mesh = mesh;
 
 			// Create a mesh renderer for the mesh to show
 			MeshRenderer meshRenderer = roadObject.AddComponent<MeshRenderer>();
 			meshRenderer.material = RoadMaterial;
 			meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-			
-            height -= 0.001f;
-        }
-    }
+			height -= 0.001f;
+		}
+	}
 }
