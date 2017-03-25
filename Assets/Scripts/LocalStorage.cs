@@ -1,8 +1,15 @@
 ﻿using System.IO;
 using UnityEngine;
+using System.Runtime.InteropServices;
 
 public static class LocalStorage {
 	private static readonly string DataPath = Application.persistentDataPath + "/";
+
+    [DllImport ("__Internal")]
+    private static extern void defaultSetString(string key, string value);
+
+    [DllImport ("__Internal")]
+    private static extern string defaultGetString(string key);
 
 	/// <summary>
 	/// Saves the data
@@ -22,6 +29,13 @@ public static class LocalStorage {
 	/// </summary>
 	/// <returns>The data.</returns>
 	public static string GetData(string fileName) {
+        //iCloudKV_SetInt("HEI", 122);
+        Debug.Log("VALUE: " + defaultGetString("HEI"));
+
+       // defaultSetString("HALLO", "hvordan går det?");
+
 		return File.Exists(DataPath + fileName) ? File.ReadAllText(DataPath + fileName) : null;
 	}
+
+
 }

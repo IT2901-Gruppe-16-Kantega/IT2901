@@ -26,7 +26,7 @@ public class CameraBackground : MonoBehaviour {
 #if UNITY_ANDROID
 		_phoneCamera = new WebCamTexture(Screen.width / 4, Screen.height / 4);
 #else
-		phoneCamera = new WebCamTexture(Screen.width, Screen.height);
+		_phoneCamera = new WebCamTexture(Screen.width, Screen.height);
 #endif
 		// Set the texture of the RawImage to the WebCamTexture
 		_image.texture = _phoneCamera;
