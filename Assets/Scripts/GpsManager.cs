@@ -24,8 +24,9 @@ public class GpsManager : MonoBehaviour {
 
 	// The Service that handles the GPS on the phone
 	private LocationService _service;
-	public float GpsAccuracy = 5f;
-	public float GpsUpdateInterval = 5f;
+	private bool _gpsSet;
+	private const float GpsAccuracy = 5f; // Accuracy in meters
+	private const float GpsUpdateInterval = 5f; // How many meters before it updates
 
 	private void Start() {
 		// Set the service variable to the phones location manager (Input.location)
@@ -44,40 +45,17 @@ public class GpsManager : MonoBehaviour {
 		}
 	}
 
-	private IEnumerator StartLocation() {
-		// A loop to wait for the service starts. Waits a maximum of maxWait seconds
-		while (_service.status == LocationServiceStatus.Initializing && _waitTime < MaxWait) {
-			// Go out and wait one seconds before coming back in
-			yield return new WaitForSeconds(1);
-			_waitTime++;
-		}
-
-		// If we timed out
-		if (_waitTime >= MaxWait) {
-			yield return new WaitForSeconds(1);
-		}
-
-		// If the service failed, try again
-		if (_service.status == LocationServiceStatus.Failed) {
-			yield return new WaitForSeconds(1);
-			if (_tries >= MaxTries)
-				yield break;
-			_tries++;
-			StartCoroutine(StartLocation());
-		} else {
-			// Otherwise, update our location
-			StartCoroutine(GetLocation());
-		}
-	}
-
-	// The coroutine that gets our current GPS position
-	// ReSharper disable once FunctionRecursiveOnAllPaths
-	private IEnumerator GetLocation() {
-		// Otherwise, update our location
+	private void Update() {
+		if (!_gpsSet || !_service.isEnabledByUser)
+			return;
 		_oldLocation = MyLocation;
-		MyLocation = new GpsLocation(_service.lastData.latitude, _service.lastData.longitude, _service.lastData.altitude);
-		if (!InitialPositionUpdated)
+		MyLocation.Latitude = _service.lastData.latitude;
+		MyLocation.Longitude = _service.lastData.longitude;
+		MyLocation.Altitude = _service.lastData.altitude;
+		if (!InitialPositionUpdated) {
 			_oldLocation = MyLocation;
+			InitialPositionUpdated = true;
+		}
 		double distance = HelperFunctions.Haversine(_oldLocation, MyLocation);
 		double bearing = HelperFunctions.CalculateBearing(_oldLocation, MyLocation);
 		transform.position =
@@ -87,12 +65,32 @@ public class GpsManager : MonoBehaviour {
 					0,
 					(float) (System.Math.Sin(bearing) * distance)
 				), Dampening);
+	}
 
-		InitialPositionUpdated = true;
-		// Wait a second to update. Can be removed if wanted, but if it requests updates too quickly, something bad might happen.
-		// Comment to see if it is faster
-		yield return new WaitForSeconds(0.5f);
-		StartCoroutine(GetLocation());
+	/// <summary>
+	/// Starts location service. Retries if it fails. Fails up to MaxTries amount of times
+	/// </summary>
+	private IEnumerator StartLocation() {
+		// A loop to wait for the service starts. Waits a maximum of MaxWait seconds
+		while (_service.status == LocationServiceStatus.Initializing && _waitTime < MaxWait) {
+			yield return new WaitForSeconds(1);
+			_waitTime++;
+		}
+
+		// If we timed out
+		if (_waitTime >= MaxWait) {
+			yield return new WaitForSeconds(1);
+		}
+		
+		if (_service.status == LocationServiceStatus.Failed) {
+			yield return new WaitForSeconds(1);
+			if (_tries >= MaxTries)
+				yield break;
+			_tries++;
+			StartCoroutine(StartLocation());
+		} else {
+			_gpsSet = true;
+		}
 	}
 
 	// The struct which contains latitude, longitude and altitude
