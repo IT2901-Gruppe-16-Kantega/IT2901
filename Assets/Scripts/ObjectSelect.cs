@@ -111,7 +111,9 @@ public class ObjectSelect : MonoBehaviour {
 	}
 
 	private void OnGUI() {
-		if (GUI.Button(new Rect(10, Screen.height - 200, 300f, 100f), "Reset posisjon") && _previousTarget != null) { // _previousTarget because we click and that updates the target. This will most likely cause a bug, so be check this if something is wrong.
+		float buttonWidth = Screen.width / 3f;
+		float buttonHeight = Screen.height / 10f;
+		if (GUI.Button(new Rect(buttonWidth/20f, Screen.height - 4/3f*buttonHeight, buttonWidth, buttonHeight), "Reset posisjon") && _previousTarget != null) { // _previousTarget because we click and that updates the target. This will most likely cause a bug, so be check this if something is wrong.
 			_previousTarget.GetComponent<RoadObjectManager>().ResetPosition();
 			_target = _previousTarget;
 			_target.GetComponent<RoadObjectManager>().Selected();

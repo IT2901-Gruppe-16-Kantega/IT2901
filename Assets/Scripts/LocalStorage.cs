@@ -29,11 +29,13 @@ public static class LocalStorage {
 	/// </summary>
 	/// <returns>The data.</returns>
 	public static string GetData(string fileName) {
+		#if UNITY_IOS
         //iCloudKV_SetInt("HEI", 122);
         Debug.Log("VALUE: " + defaultGetString("HEI"));
 
        // defaultSetString("HALLO", "hvordan går det?");
-
+		#endif
+		// TODO make it work on both iOS and Android
 		return File.Exists(DataPath + fileName) ? File.ReadAllText(DataPath + fileName) : null;
 	}
 

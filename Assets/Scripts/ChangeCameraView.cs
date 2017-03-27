@@ -52,8 +52,11 @@ public class ChangeCameraView : MonoBehaviour {
 	}
 
 	private void OnGUI() {
-		GUI.skin.button.fontSize = 42;
-		if (GUI.Button(new Rect(Screen.width / 2f - 200, Screen.height - 250, 400, 200), "Toggle Camera"))
+		float buttonWidth = Screen.width / 3f;
+		float buttonHeight = Screen.height / 10f;
+		GUI.skin.button.fontSize = (int) (buttonHeight / 4);
+
+		if (GUI.Button(new Rect(Screen.width / 2f - buttonWidth/4f, Screen.height - 4/3f * buttonHeight , buttonWidth, buttonHeight), "Toggle Camera"))
 			ChangeView();
 	}
 }
