@@ -13,7 +13,7 @@ public class GenerateObjects : MonoBehaviour {
 	//public static GPSManager.GPSLocation myLocation = new GPSManager.GPSLocation(63.417687, 10.404782);
 
 	// The list containing the locations of each road object
-	private List<Objekt> _roadObjectList = new List<Objekt>();
+	private List<Objekter> _roadObjectList = new List<Objekter>();
 
 	// The object to instantiate (create) when placing the road objects
 	public GameObject BlueSign;
@@ -71,12 +71,14 @@ public class GenerateObjects : MonoBehaviour {
 			});
 		} else {
 			// Parse the local data
-			RootObject data = JsonUtility.FromJson<RootObject>(localData);
+			NvdbObjekt data = JsonUtility.FromJson<NvdbObjekt>(localData);
 
 			// Go through each Objekter in the data.objekter (the road objects)
-			foreach (Objekt obj in data.objekter) {
+			foreach (Objekter obj in data.objekter) {
 				// Add the location to our roadObjectList
-				_roadObjectList.Add(_apiWrapper.ParseObject(obj));
+				Objekter objekt = _apiWrapper.ParseObject(obj);
+				if (objekt == null) continue;
+				_roadObjectList.Add(objekt);
 			}
 			// Make the objects
 			MakeObjects(_roadObjectList);
@@ -84,10 +86,10 @@ public class GenerateObjects : MonoBehaviour {
 	}
 
 	// Uses the locations in roadObjectList and instantiates objects
-	private void MakeObjects(List<Objekt> objects) {
+	private void MakeObjects(List<Objekter> objects) {
 		// For each location in the list
 
-		foreach (Objekt objekt in objects) {
+		foreach (Objekter objekt in objects) {
 
 			// Instantiate a new GameObject on that location relative to us
 			GameObject newGameObject = Instantiate(GetGameObject(objekt), Vector3.zero, Quaternion.identity) as GameObject;
@@ -107,7 +109,8 @@ public class GenerateObjects : MonoBehaviour {
 				rom.RoadObjectLocation = location;
 				rom.UpdateLocation();
 				rom.Objekt = objekt;
-				string[] parts = objekt.egenskaper.Find(egenskap => egenskap.id == 5530).verdi.Split(' ', '-');
+				Egenskaper prop = objekt.egenskaper.Find(egenskap => egenskap.id == 5530);
+				string[] parts = prop == null ? new[] {"MANGLER", "EGENSKAP", "5530"} : prop.verdi.Split(' ', '-');
 				rom.SignText.text = "";
 				string text = "";
 				foreach (string s in parts) {
@@ -120,6 +123,7 @@ public class GenerateObjects : MonoBehaviour {
 
 				if (objekt.parsedLocation.Count == 1) {
 					newGameObject.transform.position = position;
+					rom.OriginPoint = position;
 				} else {
 					coordinates.Add(position);
 				}
@@ -138,7 +142,7 @@ public class GenerateObjects : MonoBehaviour {
 		}
 	}
 
-	private GameObject GetGameObject(Objekt objekt) {
+	private GameObject GetGameObject(Objekter objekt) {
 		Egenskaper egenskap = objekt.egenskaper.Find(e => e.id == 5530);
 
 		if (egenskap == null)

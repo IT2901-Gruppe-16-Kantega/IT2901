@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
 
 public class RoadGenerator : MonoBehaviour {
 
@@ -19,22 +20,18 @@ public class RoadGenerator : MonoBehaviour {
 		if (string.IsNullOrEmpty(localData)) {
 			_apiWrapper.FetchObjects(532, GpsManager.MyLocation, CreateRoadMesh);
 		} else {
-			List<Objekt> roadList = new List<Objekt>();
 			// Make a new RootObject and parse the json data from the request
-			RootObject data = JsonUtility.FromJson<RootObject>(localData);
+			NvdbObjekt data = JsonUtility.FromJson<NvdbObjekt>(localData);
 
 			// Go through each Objekter in the data.objekter (the road objects)
-			foreach (Objekt obj in data.objekter) {
-				// Add the location to our roadObjectList
-				roadList.Add(_apiWrapper.ParseObject(obj));
-			}
+			List<Objekter> roadList = data.objekter.Select(obj => _apiWrapper.ParseObject(obj)).ToList();
 			CreateRoadMesh(roadList);
 		}
 	}
 
-	public void CreateRoadMesh(List<Objekt> roads) {
+	public void CreateRoadMesh(List<Objekter> roads) {
 		float height = 0.0000f;
-		foreach (Objekt road in roads) {
+		foreach (Objekter road in roads) {
 			GameObject roadObject = new GameObject("Road");
 			roadObject.transform.parent = RoadsParent.transform;
 			roadObject.layer = 10;
@@ -47,12 +44,7 @@ public class RoadGenerator : MonoBehaviour {
 
 				const float roadWidth = 15f;
 
-				Quaternion rotation;
-				if (i + 1 < road.parsedLocation.Count) {
-					rotation = Quaternion.FromToRotation(Vector3.forward, HelperFunctions.GetPositionFromCoords(coords, road.parsedLocation[i + 1]));
-				} else {
-					rotation = Quaternion.FromToRotation(Vector3.back, HelperFunctions.GetPositionFromCoords(coords, road.parsedLocation[i - 1]));
-				}
+				Quaternion rotation = i + 1 < road.parsedLocation.Count ? Quaternion.FromToRotation(Vector3.forward, HelperFunctions.GetPositionFromCoords(coords, road.parsedLocation[i + 1])) : Quaternion.FromToRotation(Vector3.back, HelperFunctions.GetPositionFromCoords(coords, road.parsedLocation[i - 1]));
 				float deltaX = (float) (-System.Math.Cos((rotation.eulerAngles.y - 180) * (System.Math.PI / 180)) * roadWidth / 2);
 				float deltaZ = (float) (System.Math.Sin((rotation.eulerAngles.y - 180) * (System.Math.PI / 180)) * roadWidth / 2);
 

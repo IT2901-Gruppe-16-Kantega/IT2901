@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 public class RoadObjectManager : MonoBehaviour {
 
@@ -7,13 +8,13 @@ public class RoadObjectManager : MonoBehaviour {
 	public float DistanceThreshold = 100;
 
 	[HideInInspector]
-	public Objekt Objekt;
+	public Objekter Objekt;
 
 	public TextMesh SignText;
 
 	public Material[] Colors = new Material[3];
 	public Renderer PoleRenderer;
-	public TextMesh DistanceText;
+	public TextMesh DistanceText; 
 
 	[HideInInspector]
 	public double Distance;
@@ -21,10 +22,13 @@ public class RoadObjectManager : MonoBehaviour {
 	public double Bearing;
 
 	[HideInInspector]
-	public double DeltaDistance;
+	public Vector3 OriginPoint;
 	[HideInInspector]
-	public double DeltaBearing;
+	public double DeltaDistance; // Distance moved from OriginPoint
+	[HideInInspector]
+	public double DeltaBearing; // Angle moved from OriginPoint
 	public bool HasBeenMoved;
+
 
 	private void Update() {
 		// I'm Mr. Meeseeks, look at me!
@@ -36,7 +40,13 @@ public class RoadObjectManager : MonoBehaviour {
 
 	public void UpdateLocation() {
 		Distance = new Vector3(transform.position.x, 0, transform.position.z).magnitude;
-		Bearing = System.Math.Asin(transform.position.x / Distance) + System.Math.PI / 2;
+		Bearing = Math.Asin(transform.position.x / Distance) + Math.PI / 2;
+		DeltaDistance = (new Vector3(transform.position.x, 0, transform.position.z) - new Vector3(OriginPoint.x, 0, OriginPoint.z)).magnitude;
+		DeltaBearing = Math.Atan2(transform.position.z - OriginPoint.z, transform.position.x - OriginPoint.x) * 180 / Math.PI - 90;
+		if (DeltaBearing < 0) DeltaBearing += 360;
+		if (!HasBeenMoved) DeltaBearing = 0;
+		Objekt.distance = DeltaDistance;
+		Objekt.bearing = DeltaBearing;
 		DistanceText.text = Distance.ToString("F2") + " m";
 	}
 
@@ -49,7 +59,11 @@ public class RoadObjectManager : MonoBehaviour {
 	}
 
 	public void ResetPosition() {
-		transform.position = HelperFunctions.GetPositionFromCoords(RoadObjectLocation);
+		transform.position = OriginPoint;
 		HasBeenMoved = false;
+		DeltaDistance = (new Vector3(transform.position.x, 0, transform.position.z) - new Vector3(OriginPoint.x, 0, OriginPoint.z)).magnitude;
+		DeltaBearing = 0;
+		Objekt.distance = DeltaDistance;
+		Objekt.bearing = DeltaBearing;
 	}
 }

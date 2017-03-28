@@ -6,9 +6,10 @@ public class RenderLimiter : MonoBehaviour {
 	private GameObject _signs;
 
 	private void Update() {
-		foreach (Transform sign in _signs.transform) {
+		//foreach (Transform sign in _signs.transform) {
+		for(int i = 0; i < _signs.transform.childCount; i++) {
 			// Reactivate object if not activated
-			sign.gameObject.SetActive((sign.position - transform.position).magnitude < SphereRadius);
+			_signs.transform.GetChild(i).gameObject.SetActive((_signs.transform.GetChild(i).position - transform.position).magnitude < SphereRadius);
 		}
 	}
 }

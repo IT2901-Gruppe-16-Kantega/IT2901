@@ -2,6 +2,7 @@
 
 public class RoadObject : MonoBehaviour {
 
+	// ReSharper disable once RedundantDefaultMemberInitializer
 	private bool _selected = false;
 
 

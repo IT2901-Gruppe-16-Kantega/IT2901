@@ -50,13 +50,4 @@ public class ChangeCameraView : MonoBehaviour {
 			yield return new WaitForEndOfFrame();
 		}
 	}
-
-	private void OnGUI() {
-		float buttonWidth = Screen.width / 3f;
-		float buttonHeight = Screen.height / 10f;
-		GUI.skin.button.fontSize = (int) (buttonHeight / 4);
-
-		if (GUI.Button(new Rect(Screen.width / 2f - buttonWidth/4f, Screen.height - 4/3f * buttonHeight , buttonWidth, buttonHeight), "Toggle Camera"))
-			ChangeView();
-	}
 }

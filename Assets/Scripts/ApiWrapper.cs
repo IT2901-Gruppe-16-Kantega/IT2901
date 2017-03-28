@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
 
 public class ApiWrapper : MonoBehaviour {
@@ -42,7 +41,7 @@ public class ApiWrapper : MonoBehaviour {
 		return new WWW(url, null, CreateHeaders());
 	}
 
-	public void FetchObjects(int id, GpsManager.GpsLocation location, Action<List<Objekt>> callback) {
+	public void FetchObjects(int id, GpsManager.GpsLocation location, Action<List<Objekter>> callback) {
 		WWW www = CreateFetchRequest(id, location.Latitude, location.Longitude);
 
 		// Start a coroutine that tries to get the data from the API
@@ -65,7 +64,7 @@ public class ApiWrapper : MonoBehaviour {
 	// The coroutine that gets the data from the API
 	// Parameters:
 	//      WWW www -> The request URL with the correct headers
-	private IEnumerator WaitForRequest(WWW www, Action<List<Objekt>> callback) {
+	private IEnumerator WaitForRequest(WWW www, Action<List<Objekter>> callback) {
 		// Request data from the API and come back when it's done
 		yield return www;
 
@@ -73,28 +72,31 @@ public class ApiWrapper : MonoBehaviour {
 		if (!string.IsNullOrEmpty(www.error)) {
 			Debug.Log("WWW Error: " + www.error);
 		} else {
-			List<Objekt> roadObjectList = new List<Objekt>();
+			List<Objekter> roadObjectList = new List<Objekter>();
 
 			// Else handle the data
 			Debug.Log("WWW Ok!: " + www.text);
 
 			// Make a new RootObject and parse the json data from the request
-			RootObject data = JsonUtility.FromJson<RootObject>(www.text);
+			NvdbObjekt data = JsonUtility.FromJson<NvdbObjekt>(www.text);
 
 			// Go through each Objekter in the data.objekter (the road objects)
-			foreach (Objekt obj in data.objekter) {
+			foreach (Objekter obj in data.objekter) {
 				// Add the location to our roadObjectList
-				roadObjectList.Add(ParseObject(obj));
+				Objekter objekt = ParseObject(obj);
+				if (objekt == null) continue;
+				roadObjectList.Add(objekt);
 			}
 			callback(roadObjectList);
 		}
 	}
 
-	public Objekt ParseObject(Objekt objekt) {
+	public Objekter ParseObject(Objekter objekt) {
 		// For debugging purposes
 		//Debug.Log(obj.geometri.wkt);
 
 		string wkt = objekt.geometri.wkt;
+		if (string.IsNullOrEmpty(wkt)) return null;
 		wkt = wkt.Substring(wkt.IndexOf("(", StringComparison.Ordinal) + 1).Trim(')');
 
 		//[63.429624610409434, 10.393547899740911, 10.9]
@@ -126,113 +128,113 @@ public class ApiWrapper : MonoBehaviour {
 // TODO find a way to parse all types of data from the API instead of just this.
 // As it is right now, it works.
 // [SuppressMessage("ReSharper", "InconsistentNaming")] is to supress Visual Studio plugin (ReSharper)  messages due to strange naming conventions
-[Serializable]
-[SuppressMessage("ReSharper", "InconsistentNaming")]
-public class Geometri {
-	public string wkt;
-	public int srid;
-	public bool egengeometri;
-}
+//[Serializable]
+//[SuppressMessage("ReSharper", "InconsistentNaming")]
+//public class Geometri {
+//	public string wkt;
+//	public int srid;
+//	public bool egengeometri;
+//}
 
-[Serializable]
-[SuppressMessage("ReSharper", "InconsistentNaming")]
-public class Objekt {
-	public int id;
-	public string href;
-	public Geometri geometri;
-	public List<Egenskaper> egenskaper;
-	public Relasjoner relasjoner;
-	public List<GpsManager.GpsLocation> parsedLocation;
-	public List<Objekt> plates;
-}
+//[Serializable]
+//[SuppressMessage("ReSharper", "InconsistentNaming")]
+//public class Objekt {
+//	public int id;
+//	public string href;
+//	public Geometri geometri;
+//	public List<Egenskaper> egenskaper;
+//	public Relasjoner relasjoner;
+//	public List<GpsManager.GpsLocation> parsedLocation;
+//	public List<Objekt> plates;
+//}
 
-[Serializable]
-[SuppressMessage("ReSharper", "InconsistentNaming")]
-public class Egenskaper {
-	public int id;
-	public string navn;
-	public int datatype;
-	public string datatype_tekst;
-	public string verdi;
-	public int enum_id;
-	public Enhet enhet;
-}
+//[Serializable]
+//[SuppressMessage("ReSharper", "InconsistentNaming")]
+//public class Egenskaper {
+//	public int id;
+//	public string navn;
+//	public int datatype;
+//	public string datatype_tekst;
+//	public string verdi;
+//	public int enum_id;
+//	public Enhet enhet;
+//}
 
-[Serializable]
-[SuppressMessage("ReSharper", "InconsistentNaming")]
-public class Enhet {
-	public int id;
-	public string navn;
-	public string kortnavn;
-}
+//[Serializable]
+//[SuppressMessage("ReSharper", "InconsistentNaming")]
+//public class Enhet {
+//	public int id;
+//	public string navn;
+//	public string kortnavn;
+//}
 
-[Serializable]
-[SuppressMessage("ReSharper", "InconsistentNaming")]
-public class Relasjoner {
-	public List<Foreldre> foreldre;
-}
+//[Serializable]
+//[SuppressMessage("ReSharper", "InconsistentNaming")]
+//public class Relasjoner {
+//	public List<Foreldre> foreldre;
+//}
 
-[Serializable]
-[SuppressMessage("ReSharper", "InconsistentNaming")]
-public class Relasjon {
-	public RelasjonType type;
-	public List<int> vegobjekter;
-}
+//[Serializable]
+//[SuppressMessage("ReSharper", "InconsistentNaming")]
+//public class Relasjon {
+//	public RelasjonType type;
+//	public List<int> vegobjekter;
+//}
 
-[Serializable]
-[SuppressMessage("ReSharper", "InconsistentNaming")]
-public class RelasjonType {
-	public int id;
-	public string navn;
-}
+//[Serializable]
+//[SuppressMessage("ReSharper", "InconsistentNaming")]
+//public class RelasjonType {
+//	public int id;
+//	public string navn;
+//}
 
-[Serializable]
-public class Foreldre : Relasjon {
-}
+//[Serializable]
+//public class Foreldre : Relasjon {
+//}
 
-[Serializable]
-[SuppressMessage("ReSharper", "InconsistentNaming")]
-public class Neste {
-	public string start;
-	public string href;
-}
+//[Serializable]
+//[SuppressMessage("ReSharper", "InconsistentNaming")]
+//public class Neste {
+//	public string start;
+//	public string href;
+//}
 
-[Serializable]
-[SuppressMessage("ReSharper", "InconsistentNaming")]
-public class Metadata {
-	public int antall;
-	public int returnert;
-	public Neste neste;
-}
+//[Serializable]
+//[SuppressMessage("ReSharper", "InconsistentNaming")]
+//public class Metadata {
+//	public int antall;
+//	public int returnert;
+//	public Neste neste;
+//}
 
-[Serializable]
-[SuppressMessage("ReSharper", "InconsistentNaming")]
-public class RootObject {
-	public List<Objekt> objekter;
-	public Metadata metadata;
-}
+//[Serializable]
+//[SuppressMessage("ReSharper", "InconsistentNaming")]
+//public class RootObject {
+//	public List<Objekt> objekter;
+//	public Metadata metadata;
+//}
 
-[Serializable]
-[SuppressMessage("ReSharper", "InconsistentNaming")]
-public class RootSingleObject {
-	public Objekt objekt;
-}
+//[Serializable]
+//[SuppressMessage("ReSharper", "InconsistentNaming")]
+//public class RootSingleObject {
+//	public Objekt objekt;
+//}
 
-[Serializable]
-[SuppressMessage("ReSharper", "InconsistentNaming")]
-public class ObjectType {
-	public int id;
-	public string navn;
-	public string beskrivelse;
-	public string stedfesting;
-	public string objektliste_dato;
-	public string sosinavn;
-	public string sosinvdbnavn;
-	public int sorteringsnummer;
-}
+//[Serializable]
+//[SuppressMessage("ReSharper", "InconsistentNaming")]
+//public class ObjectType {
+//	public int id;
+//	public string navn;
+//	public string beskrivelse;
+//	public string stedfesting;
+//	public string objektliste_dato;
+//	public string sosinavn;
+//	public string sosinvdbnavn;
+//	public int sorteringsnummer;
+//}
 
-[Serializable]
-[SuppressMessage("ReSharper", "InconsistentNaming")]
-public class RootObjectType {
-	public List<ObjectType> vegobjekttyper;
-}
+//[Serializable]
+//[SuppressMessage("ReSharper", "InconsistentNaming")]
+//public class RootObjectType {
+//	public List<ObjectType> vegobjekttyper;
+//}

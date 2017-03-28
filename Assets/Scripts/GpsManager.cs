@@ -82,7 +82,7 @@ public class GpsManager : MonoBehaviour {
 			yield return new WaitForSeconds(1);
 		}
 		
-		if (_service.status == LocationServiceStatus.Failed) {
+		if (_service.status == LocationServiceStatus.Failed || _waitTime >= MaxWait) {
 			yield return new WaitForSeconds(1);
 			if (_tries >= MaxTries)
 				yield break;

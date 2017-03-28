@@ -3,7 +3,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class ObjectSelect : MonoBehaviour {
-
+	public Text ObjectText;
+	
 	//The GameObject that is pressed
 	private GameObject _target;
 	private GameObject _previousTarget;
@@ -15,16 +16,12 @@ public class ObjectSelect : MonoBehaviour {
 	private Vector3 _screenPosition;
 	private Vector3 _startingPoint;
 
-	public Text ObjectText;
 
-
-	// Use this for initialization
 	private void Start() {
 		// The layer to target
 		_layers = LayerMask.GetMask("Signs");
 	}
 
-	// Update is called once per frame
 	private void Update() {
 		if (Input.GetMouseButtonDown(0)) {
 			RaycastHit hitInfo;
@@ -44,20 +41,22 @@ public class ObjectSelect : MonoBehaviour {
 			return; // To reduce nesting
 		if (_target != null) {
 			RoadObjectManager rom = _target.GetComponent<RoadObjectManager>();
+			// TODO commented out distance, bearing, DeltaDistance and DeltaBearing because they are calculated in RoadObjectManager instead.
 			// The distance to the target is the magnitude of the targets position vector since we are at 0,0,0 we dont need to subtract it to get the direction
-			double distance = _target.transform.position.magnitude;
+			//double distance = _target.transform.position.magnitude;
 			// The bearing is the arcsin of the targets normalized x value plus PI / 2 (because 
-			double bearing = Mathf.Asin(_target.transform.position.x / (float) distance) + Mathf.PI / 2;
+			//double bearing = Mathf.Asin(_target.transform.position.x / (float) distance) + Mathf.PI / 2;
 
-			rom.DeltaDistance = distance - rom.Distance;
-			rom.DeltaBearing = bearing - rom.Bearing;
-			rom.HasBeenMoved = Math.Abs(rom.DeltaDistance) > 0 || Math.Abs(rom.DeltaBearing) > 0;
+			//rom.DeltaDistance = distance - rom.Distance;
+			//rom.DeltaBearing = bearing - rom.Bearing;
+			rom.HasBeenMoved = Math.Abs(rom.DeltaDistance) > 0;
 			ObjectText.text =
 				"id: " + rom.Objekt.id + "\n" +
 				"egengeo: " + rom.Objekt.geometri.egengeometri + "\n" +
 				"Skiltnummer: " + rom.Objekt.egenskaper.Find(egenskap => egenskap.id == 5530).verdi + "\n" +
 				"manuelt flyttet: " + rom.HasBeenMoved + "\n" +
-				"avstand flyttet: " + String.Format("{0:F2}m", rom.Distance);
+				"avstand flyttet: " + string.Format("{0:F2}m", rom.DeltaDistance) + "\n" +
+				"retning flyttet [N]: " + string.Format("{0:F2} grader", rom.DeltaBearing);
 		}
 
 
@@ -98,31 +97,33 @@ public class ObjectSelect : MonoBehaviour {
 		GameObject newTarget = null;
 		_previousTarget = _target;
 		Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+		// TODO Check if UI was clicked instead. Look at EventSystems
 		if (Physics.Raycast(ray, out hit, float.PositiveInfinity, _layers)) {
 			newTarget = hit.collider.gameObject;
-			RoadObjectManager rom = newTarget.GetComponent<RoadObjectManager>();
-			rom.Selected();
+			newTarget.GetComponent<RoadObjectManager>().Selected();
 		}
 		if (newTarget != _target && _target != null) {
 			_target.GetComponent<RoadObjectManager>().UnSelected();
 		}
-		if (newTarget == null) ObjectText.text = "";
+		if (newTarget == null)
+			ObjectText.text = "Ingenting valgt";
 		return newTarget;
 	}
 
-	private void OnGUI() {
-		float buttonWidth = Screen.width / 3f;
-		float buttonHeight = Screen.height / 10f;
-		if (GUI.Button(new Rect(buttonWidth/20f, Screen.height - 4/3f*buttonHeight, buttonWidth, buttonHeight), "Reset posisjon") && _previousTarget != null) { // _previousTarget because we click and that updates the target. This will most likely cause a bug, so be check this if something is wrong.
-			_previousTarget.GetComponent<RoadObjectManager>().ResetPosition();
-			_target = _previousTarget;
-			_target.GetComponent<RoadObjectManager>().Selected();
-			ObjectText.text =
-				"id: " + _previousTarget.GetComponent<RoadObjectManager>().Objekt.id + "\n" +
-				"egengeo: " + _previousTarget.GetComponent<RoadObjectManager>().Objekt.geometri.egengeometri + "\n" +
-				"Skiltnummer: " + _previousTarget.GetComponent<RoadObjectManager>().Objekt.egenskaper.Find(egenskap => egenskap.id == 5530).verdi + "\n" +
-				"manuelt flyttet: " + _previousTarget.GetComponent<RoadObjectManager>().HasBeenMoved + "\n" +
-				"avstand flyttet: " + String.Format("{0:F2}m", _previousTarget.GetComponent<RoadObjectManager>().Distance);
-		}
+	public void ResetSignPosition() {
+		// _previousTarget because we click and that updates the target. This will most likely cause a bug, so check this if something is wrong.
+		// TODO click ui without calling ReturnClickedObject
+		if (_previousTarget == null) return;
+		RoadObjectManager prevRom = _previousTarget.GetComponent<RoadObjectManager>();
+		prevRom.ResetPosition();
+		_target = _previousTarget;
+		_target.GetComponent<RoadObjectManager>().Selected();
+		ObjectText.text =
+			"id: " + prevRom.Objekt.id + "\n" +
+			"egengeo: " + prevRom.Objekt.geometri.egengeometri + "\n" +
+			"Skiltnummer: " + prevRom.Objekt.egenskaper.Find(egenskap => egenskap.id == 5530).verdi + "\n" +
+			"manuelt flyttet: " + prevRom.HasBeenMoved + "\n" +
+			"avstand flyttet: " + string.Format("{0:F2} m", prevRom.DeltaDistance) + "\n" +
+			"retning flyttet [N]: " + string.Format("{0:F2} grader", prevRom.DeltaBearing);
 	}
 }
