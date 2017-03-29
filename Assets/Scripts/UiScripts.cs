@@ -19,7 +19,7 @@ public class UiScripts : MonoBehaviour {
 	private const float AnimationDampening = 0.4f;
 
 	public void OpenReactNative() {
-		Application.OpenURL("com.nvdb.map:");
+		Application.OpenURL("nvdbRn:");
 	}
 
 	public void ShowInfo() {

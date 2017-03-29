@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GenerateObjects : MonoBehaviour {
 
@@ -59,9 +60,14 @@ public class GenerateObjects : MonoBehaviour {
 		_roadGenerator.FetchRoad();
 	}
 
+	public Text debugText;
+
 	private void FetchObjects() {
 		// Second parameter is callback, initializing the object list and making the objects when the function is done.
 		string localData = LocalStorage.GetData("data.json");
+		// NOTE Temporarily disabling localData so the NVDB guys can test it
+		//localData = "";
+		debugText.text = localData;
 		if (string.IsNullOrEmpty(localData)) {
 			_apiWrapper.FetchObjects(96, GpsManager.MyLocation, objects => {
 				Debug.Log("Returned " + objects.Count + " objects");

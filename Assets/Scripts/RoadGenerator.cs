@@ -17,6 +17,8 @@ public class RoadGenerator : MonoBehaviour {
 
 	public void FetchRoad() {
 		string localData = LocalStorage.GetData("roads.json");
+		// NOTE Temporarily disabling localData so the NVDB guys can test it
+		localData = "";
 		if (string.IsNullOrEmpty(localData)) {
 			_apiWrapper.FetchObjects(532, GpsManager.MyLocation, CreateRoadMesh);
 		} else {
