@@ -96,7 +96,10 @@ public class ApiWrapper : MonoBehaviour {
 		//Debug.Log(obj.geometri.wkt);
 
 		string wkt = objekt.geometri.wkt;
-		if (string.IsNullOrEmpty(wkt)) return null;
+		if (string.IsNullOrEmpty(wkt)) {
+			Debug.Log(JsonUtility.ToJson(objekt));
+			return null;
+		}
 		// Make a substring of the contents between the parenthesis
 		wkt = wkt.Substring(wkt.IndexOf("(", StringComparison.Ordinal) + 1).Trim(')');
 

@@ -32,6 +32,9 @@ public class GenerateObjects : MonoBehaviour {
 	[SerializeField]
 	private RoadGenerator _roadGenerator;
 
+	[HideInInspector] 
+	public static bool IsCreatingSigns = true;
+
 	// Use this for initialization
 	private void Start() {
 		/*
@@ -60,30 +63,29 @@ public class GenerateObjects : MonoBehaviour {
 		_roadGenerator.FetchRoad();
 	}
 
-	public Text debugText;
+	public Text DebugText; // TODO remove when done. Is only for debugging
 
 	private void FetchObjects() {
 		// Second parameter is callback, initializing the object list and making the objects when the function is done.
 		string localData = LocalStorage.GetData("data.json");
 		// NOTE Temporarily disabling localData so the NVDB guys can test it
 		//localData = "";
-		debugText.text = localData;
+		DebugText.text = localData;
 		if (string.IsNullOrEmpty(localData)) {
 			_apiWrapper.FetchObjects(96, GpsManager.MyLocation, objects => {
-				Debug.Log("Returned " + objects.Count + " objects");
+				Debug.Log("Returned " + objects.Count + " objects"); // TODO remove when done. Is only for debugging
 				_roadObjectList = objects;
 				MakeObjects(_roadObjectList);
-
 			});
 		} else {
 			// Parse the local data
 			NvdbObjekt data = JsonUtility.FromJson<NvdbObjekt>(localData);
-
 			// Go through each Objekter in the data.objekter (the road objects)
 			foreach (Objekter obj in data.objekter) {
 				// Add the location to our roadObjectList
 				Objekter objekt = _apiWrapper.ParseObject(obj);
-				if (objekt == null) continue;
+				if (objekt == null)
+					continue;
 				_roadObjectList.Add(objekt);
 			}
 			// Make the objects
@@ -93,10 +95,8 @@ public class GenerateObjects : MonoBehaviour {
 
 	// Uses the locations in roadObjectList and instantiates objects
 	private void MakeObjects(List<Objekter> objects) {
-		// For each location in the list
-
+		IsCreatingSigns = true;
 		foreach (Objekter objekt in objects) {
-
 			// Instantiate a new GameObject on that location relative to us
 			GameObject newGameObject = Instantiate(GetGameObject(objekt), Vector3.zero, Quaternion.identity) as GameObject;
 			if (newGameObject == null)
@@ -115,8 +115,13 @@ public class GenerateObjects : MonoBehaviour {
 				rom.RoadObjectLocation = location;
 				rom.UpdateLocation();
 				rom.Objekt = objekt;
-				Egenskaper prop = objekt.egenskaper.Find(egenskap => egenskap.id == 5530);
-				string[] parts = prop == null ? new[] {"MANGLER", "EGENSKAP", "5530"} : prop.verdi.Split(' ', '-');
+				Egenskaper prop = objekt.egenskaper.Find(egenskap => egenskap.id == 5530); // 5530 is sign number
+				if (prop == null) {
+					// TODO HANDLING OBJECTS MISSING STUFF HAS BEEN MOVED TO REACT NATIVE. Keep this in case it is needed.
+					//SharedData.Data.Add(objekt);
+					objekt.metaData.notat = "Mangler egenskap 5530";
+				}
+				string[] parts = prop == null ? new[] { "MANGLER", "EGENSKAP", "5530" } : prop.verdi.Split(' ', '-');
 				rom.SignText.text = "";
 				string text = "";
 				foreach (string s in parts) {
@@ -137,7 +142,6 @@ public class GenerateObjects : MonoBehaviour {
 
 			if (objekt.parsedLocation.Count <= 1)
 				continue; // To reduce nesting
-
 			LineRenderer lineRenderer = newGameObject.AddComponent<LineRenderer>();
 			lineRenderer.material = new Material(Shader.Find("Particles/Additive"));
 			lineRenderer.SetColors(Color.white, Color.white);
@@ -146,6 +150,7 @@ public class GenerateObjects : MonoBehaviour {
 
 			lineRenderer.SetPositions(coordinates.ToArray());
 		}
+		IsCreatingSigns = false;
 	}
 
 	private GameObject GetGameObject(Objekter objekt) {

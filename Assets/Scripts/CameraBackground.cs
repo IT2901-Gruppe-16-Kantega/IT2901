@@ -14,8 +14,10 @@ public class CameraBackground : MonoBehaviour {
 
 	// Use this for initialization
 	private void Start() {
-		if (WebCamTexture.devices.Length == 0)
+		if (WebCamTexture.devices.Length == 0) {
+			Debug.Log("No Camera Devices");
 			return;
+		}
 		// Get the components that are attached to this GameObject
 		_arf = GetComponent<AspectRatioFitter>();
 		_image = GetComponent<RawImage>();
@@ -53,5 +55,10 @@ public class CameraBackground : MonoBehaviour {
 
 		// If the videofeed is vertically mirrored flip it, else let it be.
 		_image.uvRect = _phoneCamera.videoVerticallyMirrored ? new Rect(1, 0, -1, 1) : new Rect(0, 0, 1, 1);
+	}
+
+	private void OnDestroy() {
+		// Stop the camera when the object is destroyed (scene change). Without this, the app will crash because the camera keeps sending stuff to the app.
+		_phoneCamera.Stop();
 	}
 }

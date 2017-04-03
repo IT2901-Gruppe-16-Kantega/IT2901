@@ -11,6 +11,9 @@ public class RoadGenerator : MonoBehaviour {
 	[SerializeField]
 	private ApiWrapper _apiWrapper;
 
+	[HideInInspector] 
+	public static bool IsCreatingRoads = true;
+
 	private void Start() {
 		_apiWrapper = GetComponent<ApiWrapper>();
 	}
@@ -32,6 +35,7 @@ public class RoadGenerator : MonoBehaviour {
 	}
 
 	public void CreateRoadMesh(List<Objekter> roads) {
+		IsCreatingRoads = true;
 		float height = 0.0000f;
 		foreach (Objekter road in roads) {
 			GameObject roadObject = new GameObject("Road");
@@ -46,7 +50,10 @@ public class RoadGenerator : MonoBehaviour {
 
 				const float roadWidth = 15f;
 
-				Quaternion rotation = i + 1 < road.parsedLocation.Count ? Quaternion.FromToRotation(Vector3.forward, HelperFunctions.GetPositionFromCoords(coords, road.parsedLocation[i + 1])) : Quaternion.FromToRotation(Vector3.back, HelperFunctions.GetPositionFromCoords(coords, road.parsedLocation[i - 1]));
+				Quaternion rotation = i + 1 < road.parsedLocation.Count
+					? Quaternion.FromToRotation(Vector3.forward,
+						HelperFunctions.GetPositionFromCoords(coords, road.parsedLocation[i + 1]))
+					: Quaternion.FromToRotation(Vector3.back, HelperFunctions.GetPositionFromCoords(coords, road.parsedLocation[i - 1]));
 				float deltaX = (float) (-System.Math.Cos((rotation.eulerAngles.y - 180) * (System.Math.PI / 180)) * roadWidth / 2);
 				float deltaZ = (float) (System.Math.Sin((rotation.eulerAngles.y - 180) * (System.Math.PI / 180)) * roadWidth / 2);
 
@@ -91,5 +98,6 @@ public class RoadGenerator : MonoBehaviour {
 			meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 			height -= 0.001f;
 		}
+		IsCreatingRoads = false;
 	}
 }
