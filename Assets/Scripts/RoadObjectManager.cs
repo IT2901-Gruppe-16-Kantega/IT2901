@@ -45,8 +45,8 @@ public class RoadObjectManager : MonoBehaviour {
 		DeltaBearing = Math.Atan2(transform.position.z - OriginPoint.z, transform.position.x - OriginPoint.x) * 180 / Math.PI - 90;
 		if (DeltaBearing < 0) DeltaBearing += 360;
 		if (!HasBeenMoved) DeltaBearing = 0;
-		Objekt.distance = DeltaDistance;
-		Objekt.bearing = DeltaBearing;
+		Objekt.metaData.distance = DeltaDistance;
+		Objekt.metaData.bearing = DeltaBearing;
 		DistanceText.text = Distance.ToString("F2") + " m";
 	}
 
@@ -63,7 +63,7 @@ public class RoadObjectManager : MonoBehaviour {
 		HasBeenMoved = false;
 		DeltaDistance = (new Vector3(transform.position.x, 0, transform.position.z) - new Vector3(OriginPoint.x, 0, OriginPoint.z)).magnitude;
 		DeltaBearing = 0;
-		Objekt.distance = DeltaDistance;
-		Objekt.bearing = DeltaBearing;
+		Objekt.metaData.distance = DeltaDistance;
+		Objekt.metaData.bearing = DeltaBearing;
 	}
 }

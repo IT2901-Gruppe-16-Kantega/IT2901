@@ -1,8 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Debug = UnityEngine.Debug;
 
 public class UiScripts : MonoBehaviour {
 
@@ -12,11 +15,27 @@ public class UiScripts : MonoBehaviour {
 	// TODO currently only for saving reports. Maybe add for loading and saving files?
 	public Image StatusImage;
 	public Text StatusText;
+	public GameObject LoadingPanel;
 
 	private bool _isInfoShown;
 	private readonly Vector2 _infoBgMaxSize = new Vector2(400, 500);
 	private readonly Vector2 _infoTextMaxSize = new Vector2(380, 480);
 	private const float AnimationDampening = 0.4f;
+
+	private void Start() {
+		StartCoroutine(LoadingScreen());
+	}
+
+	private IEnumerator LoadingScreen() {
+		Stopwatch stopwatch = new Stopwatch();
+		stopwatch.Start();
+		while (GenerateObjects.IsCreatingSigns || RoadGenerator.IsCreatingRoads) {
+			yield return null;
+		}
+		stopwatch.Stop();
+		Debug.Log("DONE LOADING " + stopwatch.Elapsed);
+		LoadingPanel.SetActive(false);
+	}
 
 	public void OpenReactNative() {
 		Application.OpenURL("nvdbRn:");
@@ -29,8 +48,10 @@ public class UiScripts : MonoBehaviour {
 
 	public void GenerateReport() {
 		List<Objekter> movedSignsList = (from Transform sign in Signs.transform select sign.GetComponent<RoadObjectManager>() into rom where rom.HasBeenMoved select rom.Objekt).ToList();
+		SharedData.Data.AddRange(movedSignsList);
 		StatusText.text = LocalStorage.CreateReport("report.json", movedSignsList) ? "Report Saved Successfully" : "Report Failed To Save";
 		StartCoroutine(AnimateStatus());
+		StartCoroutine(LoadReportScene());
 	}
 
 	/// <summary>
@@ -92,5 +113,10 @@ public class UiScripts : MonoBehaviour {
 		}
 		StatusImage.color = statusImageTargetColor;
 		StatusText.color = statusTextTargetColor;
+	}
+
+	private static IEnumerator LoadReportScene() {
+		AsyncOperation asyncOperation = SceneManager.LoadSceneAsync("report");
+		while (!asyncOperation.isDone) yield return null;
 	}
 }
