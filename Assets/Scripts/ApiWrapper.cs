@@ -209,7 +209,7 @@ public class Metadata {
 [SuppressMessage("ReSharper", "InconsistentNaming")]
 public class RootObject {
 	public List<Objekt> objekter;
-	public Metadata metadata;
+	//public Metadata metadata;
 }
 
 [Serializable]

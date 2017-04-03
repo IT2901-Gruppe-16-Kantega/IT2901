@@ -19,13 +19,25 @@ char* cStringCopy(const char* string)
     return res;
 }
 
-void defaultSetString(char * key, NSString * value) {
+void defaultsSetString(char * key, NSString * value) {
     [[[NSUserDefaults alloc] initWithSuiteName:@"group.nvdb"] setObject:value forKey:[NSString stringWithUTF8String:key]];
     [[[NSUserDefaults alloc] initWithSuiteName:@"group.nvdb"] synchronize];
 }
 
-const char* defaultGetString(char * key) {
+const char* defaultsGetString(char * key) {
     NSUserDefaults* defaults = [[NSUserDefaults alloc] initWithSuiteName:@"group.nvdb"];
     NSString* str = [defaults stringForKey:[NSString stringWithUTF8String:key]];
     return cStringCopy([str UTF8String]);
 }
+
+/*const char* defaultsGetDictionary(char * key) {
+    NSUserDefaults* defaults = [[NSUserDefaults alloc] initWithSuiteName:@"group.nvdb"];
+    
+    NSArray * arr = [defaults objectForKey:[NSString stringWithUTF8String:key]];
+    
+    NSError * error;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:arr options:0 error:&error];
+    NSString * jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    
+    return cStringCopy([jsonString UTF8String]);
+}*/

@@ -15,7 +15,7 @@ public class RoadGenerator : MonoBehaviour {
 	}
 
 	public void FetchRoad() {
-		string localData = LocalStorage.GetData("roads.json");
+        string localData = "";//LocalStorage.GetData("roads.json");
 		if (string.IsNullOrEmpty(localData)) {
 			_apiWrapper.FetchObjects(532, GpsManager.MyLocation, CreateRoadMesh);
 		} else {

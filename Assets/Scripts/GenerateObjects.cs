@@ -62,7 +62,7 @@ public class GenerateObjects : MonoBehaviour {
 
 	private void FetchObjects() {
 		// Second parameter is callback, initializing the object list and making the objects when the function is done.
-		string localData = LocalStorage.GetData("data.json");
+        string localData = "{\"objekter\": " + LocalStorage.GetData("data.json") + "}";
 		if (string.IsNullOrEmpty(localData)) {
 			_apiWrapper.FetchObjects(96, GpsManager.MyLocation, objects => {
 				Debug.Log("Returned " + objects.Count + " objects");
@@ -79,6 +79,7 @@ public class GenerateObjects : MonoBehaviour {
 				// Add the location to our roadObjectList
 				_roadObjectList.Add(_apiWrapper.ParseObject(obj));
 			}
+            Debug.Log(data.objekter.Count + " objekter");
 			// Make the objects
 			MakeObjects(_roadObjectList);
 		}
