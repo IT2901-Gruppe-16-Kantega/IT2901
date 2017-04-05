@@ -27,13 +27,17 @@ public class UiScripts : MonoBehaviour {
 	}
 
 	private IEnumerator LoadingScreen() {
+		#if DEVELOPMENT_BUILD
 		Stopwatch stopwatch = new Stopwatch();
 		stopwatch.Start();
+		#endif
 		while (GenerateObjects.IsCreatingSigns || RoadGenerator.IsCreatingRoads) {
 			yield return null;
 		}
+		#if DEVELOPMENT_BUILD
 		stopwatch.Stop();
 		Debug.Log("DONE LOADING " + stopwatch.Elapsed);
+		#endif
 		LoadingPanel.SetActive(false);
 	}
 
