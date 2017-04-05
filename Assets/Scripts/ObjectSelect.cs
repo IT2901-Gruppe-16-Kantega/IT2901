@@ -41,8 +41,9 @@ public class ObjectSelect : MonoBehaviour {
 
 		if (!_isDragging || _target == null)
 			return; // To reduce nesting
-		if (_target != null) {
-			RoadObjectManager rom = _target.GetComponent<RoadObjectManager>();
+
+        RoadObjectManager rom = _target.GetComponent<RoadObjectManager>();
+        if (_target != null) {
 			rom.HasBeenMoved = Math.Abs(rom.DeltaDistance) > 0;
 			ObjectText.text =
 				"id: " + rom.Objekt.id + "\n" +
@@ -61,7 +62,11 @@ public class ObjectSelect : MonoBehaviour {
 		Vector3 screenPointOffset = currentScreenSpace - _startingPoint;
 		float xDir, yDir;
 		GetXandYOffsets(screenPointOffset, out xDir, out yDir);
-		_target.transform.Translate(xDir, 0, yDir);
+		
+		_startingPoint = Input.mousePosition;
+		if (!rom.Objekt.geometri.egengeometri) { // Only move if the object does not have egengeometri
+			_target.transform.Translate(xDir, 0, yDir);
+		}
 		_startingPoint = Input.mousePosition;
 	}
 
