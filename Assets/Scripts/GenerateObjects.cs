@@ -30,7 +30,7 @@ public class GenerateObjects : MonoBehaviour {
 	private ApiWrapper _apiWrapper;
 
 	[SerializeField]
-	private RoadGenerator _roadGenerator;
+	private GenerateRoads _roadGenerator;
 
 	[HideInInspector] 
 	public static bool IsCreatingSigns = true;
@@ -42,7 +42,7 @@ public class GenerateObjects : MonoBehaviour {
 		so make sure that it has it attached
 		*/
 		_apiWrapper = GetComponent<ApiWrapper>();
-		_roadGenerator = GetComponent<RoadGenerator>();
+		_roadGenerator = GetComponent<GenerateRoads>();
 
 		// Update position
 		//        myLocation = GPSManager.myLocation;

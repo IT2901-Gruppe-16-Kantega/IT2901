@@ -31,7 +31,7 @@ public class UiScripts : MonoBehaviour {
 		Stopwatch stopwatch = new Stopwatch();
 		stopwatch.Start();
 		#endif
-		while (GenerateObjects.IsCreatingSigns || RoadGenerator.IsCreatingRoads) {
+		while (GenerateObjects.IsCreatingSigns || GenerateRoads.IsCreatingRoads) {
 			yield return null;
 		}
 		#if DEVELOPMENT_BUILD

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-public class RoadGenerator : MonoBehaviour {
+public class GenerateRoads : MonoBehaviour {
 
 	public Material RoadMaterial;
 
