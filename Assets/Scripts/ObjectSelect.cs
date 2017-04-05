@@ -39,8 +39,8 @@ public class ObjectSelect : MonoBehaviour {
 
 		if (!_isMouseDrag || _target == null)
 			return; // To reduce nesting
-		if (_target != null) {
-			RoadObjectManager rom = _target.GetComponent<RoadObjectManager>();
+        RoadObjectManager rom = _target.GetComponent<RoadObjectManager>();
+        if (_target != null) {
 			// TODO commented out distance, bearing, DeltaDistance and DeltaBearing because they are calculated in RoadObjectManager instead.
 			// The distance to the target is the magnitude of the targets position vector since we are at 0,0,0 we dont need to subtract it to get the direction
 			//double distance = _target.transform.position.magnitude;
@@ -89,7 +89,10 @@ public class ObjectSelect : MonoBehaviour {
 		}
 
 
-		_target.transform.Translate(xDir, 0, yDir);
+        if (!rom.Objekt.geometri.egengeometri) // Dont move egengeo objects - Vegard
+        {
+            _target.transform.Translate(xDir, 0, yDir);
+        }
 		_startingPoint = Input.mousePosition;
 	}
 

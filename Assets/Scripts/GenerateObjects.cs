@@ -106,12 +106,13 @@ public class GenerateObjects : MonoBehaviour {
 
 			List<Vector3> coordinates = new List<Vector3>();
 
-			foreach (GpsManager.GpsLocation location in objekt.parsedLocation) {
+            RoadObjectManager rom = newGameObject.GetComponent<RoadObjectManager>();
+            foreach (GpsManager.GpsLocation location in objekt.parsedLocation) {
 				Vector3 position = HelperFunctions.GetPositionFromCoords(location);
 
 				// Set the parent of the new GameObject to be us (so we dont have a huge list in root)
 				newGameObject.transform.parent = SignsParent.transform;
-				RoadObjectManager rom = newGameObject.GetComponent<RoadObjectManager>();
+			    
 				rom.RoadObjectLocation = location;
 				rom.UpdateLocation();
 				rom.Objekt = objekt;
@@ -139,6 +140,7 @@ public class GenerateObjects : MonoBehaviour {
 					coordinates.Add(position);
 				}
 			}
+            if (objekt.geometri.egengeometri) rom.PoleRenderer.material = rom.Colors[1]; // Changed egengeo signs to green.
 
 			if (objekt.parsedLocation.Count <= 1)
 				continue; // To reduce nesting

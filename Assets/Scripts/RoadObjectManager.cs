@@ -12,7 +12,7 @@ public class RoadObjectManager : MonoBehaviour {
 
 	public TextMesh SignText;
 
-	public Material[] Colors = new Material[3];
+	public Material[] Colors = new Material[4];
 	public Renderer PoleRenderer;
 	public TextMesh DistanceText; 
 
@@ -28,7 +28,6 @@ public class RoadObjectManager : MonoBehaviour {
 	[HideInInspector]
 	public double DeltaBearing; // Angle moved from OriginPoint
 	public bool HasBeenMoved;
-
 
 	private void Update() {
 		// I'm Mr. Meeseeks, look at me!
@@ -51,11 +50,12 @@ public class RoadObjectManager : MonoBehaviour {
 	}
 
 	public void Selected() {
-		PoleRenderer.material = Colors[1];
+		PoleRenderer.material = Colors[3]; // Changed to blue - Vegard
 	}
 
 	public void UnSelected() {
 		PoleRenderer.material = HasBeenMoved ? Colors[2] : Colors[0];
+        if (Objekt.geometri.egengeometri) PoleRenderer.material = Colors[1]; // Keep green on egengeo signs - Vegard
 	}
 
 	public void ResetPosition() {
