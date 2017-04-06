@@ -5,16 +5,16 @@ public class ManualCalibration : MonoBehaviour {
 
 	public float PerspectiveZoomSpeed = 0.5f;        // The rate of change of the field of view in perspective mode.
 
-	private const float RotationDampening = 0.8f; // To dampen the rotation
+	private const float RotationDampening = 0.8f; // To dampen the rotation. Higher means more rotation
 	private float _totalRotation;
-	private const float RotationThreshold = 20;
+	private const float RotationThreshold = 4f;
 	private bool _isRotating;
 	private const float RotationLimit = 90f;
 
 	private float _cameraRotationOffset;
-	private const float PinchDampening = 0.1f; // To dampen the pinching
+	private const float PinchDampening = 0.3f; // To dampen the pinching. Higher means more zooming
 	private float _totalPinch;
-	private const float PinchThreshold = 150;
+	private const float PinchThreshold = 50;
 	private bool _isZooming;
 	private const float MinFov = 1f;
 	private const float MaxFov = 90f;
