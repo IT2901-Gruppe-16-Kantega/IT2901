@@ -34,7 +34,7 @@ public class ReportDataHandler : MonoBehaviour {
 	/// Loads main scene
 	/// </summary>
 	private static IEnumerator LoadMainScene() {
-		AsyncOperation asyncOperation = SceneManager.LoadSceneAsync("main");
+		AsyncOperation asyncOperation = SceneManager.LoadSceneAsync("Main Scene");
 		while (!asyncOperation.isDone)
 			yield return null;
 	}

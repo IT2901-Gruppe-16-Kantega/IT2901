@@ -5,16 +5,16 @@ public class ManualCalibration : MonoBehaviour {
 
 	public float PerspectiveZoomSpeed = 0.5f;        // The rate of change of the field of view in perspective mode.
 
-	private const float RotationDampening = 0.8f; // To dampen the rotation. Higher means more rotation
+	private static float _rotationDampening = 0.8f; // To dampen the rotation. Higher means more rotation
 	private float _totalRotation;
-	private const float RotationThreshold = 4f;
+	private static float _rotationThreshold = 4f;
 	private bool _isRotating;
 	private const float RotationLimit = 90f;
 
 	private float _cameraRotationOffset;
-	private const float PinchDampening = 0.3f; // To dampen the pinching. Higher means more zooming
+	private static float _pinchDampening = 0.3f; // To dampen the pinching. Higher means more zooming
 	private float _totalPinch;
-	private const float PinchThreshold = 50;
+	private static float _pinchThreshold = 50;
 	private bool _isZooming;
 	private const float MinFov = 1f;
 	private const float MaxFov = 90f;
@@ -23,6 +23,10 @@ public class ManualCalibration : MonoBehaviour {
 
 	private void Start() {
 		_gyroCam = GetComponent<GyroscopeCamera>();
+		_pinchDampening = PlayerPrefs.GetFloat("ZoomSens", _pinchDampening);
+		_pinchThreshold = PlayerPrefs.GetFloat("ZoomThreshold", _pinchThreshold);
+		_rotationDampening = PlayerPrefs.GetFloat("RotationSens", _rotationDampening);
+		_rotationThreshold = PlayerPrefs.GetFloat("RotationThreshold", _rotationThreshold);
 	}
 
 
@@ -51,20 +55,20 @@ public class ManualCalibration : MonoBehaviour {
 
 		_totalPinch += Mathf.Abs(DetectTouchMovement.PinchDistanceDelta);
 		// If _totalPinch crosses the threshold and we arent rotating, zoom
-		if (_totalPinch >= PinchThreshold && !_isRotating) { //Zoom
+		if (_totalPinch >= _pinchThreshold && !_isRotating) { //Zoom
 			Debug.Log("Zooming");
 			_isZooming = true;
-			float pinchAmount = DetectTouchMovement.PinchDistanceDelta * PinchDampening;
+			float pinchAmount = DetectTouchMovement.PinchDistanceDelta * _pinchDampening;
 			Camera.main.fieldOfView -= pinchAmount;
 			Camera.main.fieldOfView = Mathf.Clamp(Camera.main.fieldOfView, MinFov, MaxFov);
 		}
 
 		_totalRotation += Mathf.Abs(DetectTouchMovement.TurnAngleDelta);
-		if (_totalRotation >= RotationThreshold && !_isZooming) {
+		if (_totalRotation >= _rotationThreshold && !_isZooming) {
 			Debug.Log("Rotating");
 			// Rotate
 			_isRotating = true;
-			float rotationAmount = DetectTouchMovement.TurnAngleDelta * RotationDampening;
+			float rotationAmount = DetectTouchMovement.TurnAngleDelta * _rotationDampening;
 			if (_gyroCam.IsCarMode) {
 				transform.RotateAround(User.transform.position, Vector3.up, rotationAmount);
 			} else {

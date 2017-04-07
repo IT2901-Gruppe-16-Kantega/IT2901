@@ -120,7 +120,7 @@ public class UiScripts : MonoBehaviour {
 	}
 
 	private static IEnumerator LoadReportScene() {
-		AsyncOperation asyncOperation = SceneManager.LoadSceneAsync("report");
+		AsyncOperation asyncOperation = SceneManager.LoadSceneAsync("Report Scene");
 		while (!asyncOperation.isDone) yield return null;
 	}
 }
