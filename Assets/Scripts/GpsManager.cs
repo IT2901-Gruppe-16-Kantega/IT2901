@@ -11,8 +11,8 @@ public class GpsManager : MonoBehaviour {
 	// How many tries before giving up starting location
 	private const int MaxTries = 3;
 	private int _tries;
-	[Range(0.01f, 1)]
-	public float Dampening = 0.8f;
+	[Range(0.01f, 10)]
+	public float MoveSpeed = 2f;
 
 	// Our default latitude, longitude, and altitude
 	// Default is somewhere in the middle of Trondheim
@@ -58,13 +58,7 @@ public class GpsManager : MonoBehaviour {
 		}
 		double distance = HelperFunctions.Haversine(_oldLocation, MyLocation);
 		double bearing = HelperFunctions.CalculateBearing(_oldLocation, MyLocation);
-		transform.position =
-			Vector3.Lerp(transform.position,
-				new Vector3(
-					(float) (-System.Math.Cos(bearing) * distance),
-					0,
-					(float) (System.Math.Sin(bearing) * distance)
-				), Dampening);
+		transform.position = Vector3.MoveTowards(transform.position, new Vector3((float) (-System.Math.Cos(bearing) * distance), 0, (float) (System.Math.Sin(bearing) * distance)), MoveSpeed * Time.deltaTime);
 	}
 
 	private void OnDestroy() {
