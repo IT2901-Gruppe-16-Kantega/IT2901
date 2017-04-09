@@ -35,17 +35,12 @@ public class GenerateObjects : MonoBehaviour {
 	[HideInInspector] 
 	public static bool IsCreatingSigns = true;
 
-	// Use this for initialization
+	private bool _useLocalData; // true if RN data is NOT used (fetch objects from this app)
+
 	private void Start() {
-		/*
-		Get the GPSManager script atteched to this same object. Gives you an error if this gameobject does not have the GPSManager script attached
-		so make sure that it has it attached
-		*/
 		_apiWrapper = GetComponent<ApiWrapper>();
 		_roadGenerator = GetComponent<GenerateRoads>();
-
-		// Update position
-		//        myLocation = GPSManager.myLocation;
+		_useLocalData = PlayerPrefs.GetInt("UseLocalData", 1) == 1;
 
 		StartCoroutine(FetchAfterLocationUpdated());
 	}
@@ -65,54 +60,60 @@ public class GenerateObjects : MonoBehaviour {
 
 	public Text DebugText; // TODO remove when done. Is only for debugging
 
+	private void Update() {
+		DebugText.text = 1 / Time.deltaTime + "";
+	}
+
+	/// <summary>
+	/// Gets the objects either from the database or locally and instantiates the objects
+	/// </summary>
 	private void FetchObjects() {
 		// Second parameter is callback, initializing the object list and making the objects when the function is done.
 		string localData = LocalStorage.GetData("data.json");
-		// NOTE Temporarily disabling localData so the NVDB guys can test it
-		//localData = "";
-		DebugText.text = localData;
-		if (string.IsNullOrEmpty(localData)) {
+		if (_useLocalData) {
 			_apiWrapper.FetchObjects(96, GpsManager.MyLocation, objects => {
 				Debug.Log("Returned " + objects.Count + " objects"); // TODO remove when done. Is only for debugging
 				_roadObjectList = objects;
-				MakeObjects(_roadObjectList);
+				UiScripts.ObjectsToInstantiate = objects.Count;
+				StartCoroutine(MakeObjects(_roadObjectList));
 			});
 		} else {
+			if (string.IsNullOrEmpty(localData)) {
+				// TODO Do something if data loaded is not there. Query the user maybe?
+			}
 			// Parse the local data
 			NvdbObjekt data = JsonUtility.FromJson<NvdbObjekt>(localData);
+			UiScripts.ObjectsToInstantiate = data.objekter.Count;
 			// Go through each Objekter in the data.objekter (the road objects)
 			foreach (Objekter obj in data.objekter) {
 				// Add the location to our roadObjectList
 				Objekter objekt = _apiWrapper.ParseObject(obj);
-				if (objekt == null)
+				if (objekt == null) // Skip null objects
 					continue;
 				_roadObjectList.Add(objekt);
 			}
 			// Make the objects
-			MakeObjects(_roadObjectList);
+			StartCoroutine(MakeObjects(_roadObjectList));
 		}
 	}
 
 	// Uses the locations in roadObjectList and instantiates objects
-	private void MakeObjects(List<Objekter> objects) {
+	private IEnumerator MakeObjects(IList<Objekter> objects) {
 		IsCreatingSigns = true;
-		foreach (Objekter objekt in objects) {
-			// Instantiate a new GameObject on that location relative to us
+		for (int i = 0; i < objects.Count; i++) {
+			Objekter objekt = objects[i];
+// Instantiate a new GameObject on that location relative to us
 			GameObject newGameObject = Instantiate(GetGameObject(objekt), Vector3.zero, Quaternion.identity) as GameObject;
 			if (newGameObject == null)
 				continue; // In case anything weird happens.
-
-			GetGameObject(objekt);
-
 			List<Vector3> coordinates = new List<Vector3>();
-
-            RoadObjectManager rom = newGameObject.GetComponent<RoadObjectManager>();
-            foreach (GpsManager.GpsLocation location in objekt.parsedLocation) {
+			RoadObjectManager rom = newGameObject.GetComponent<RoadObjectManager>();
+			foreach (GpsManager.GpsLocation location in objekt.parsedLocation) {
 				Vector3 position = HelperFunctions.GetPositionFromCoords(location);
 
 				// Set the parent of the new GameObject to be us (so we dont have a huge list in root)
 				newGameObject.transform.parent = SignsParent.transform;
-			    
+
 				rom.RoadObjectLocation = location;
 				rom.UpdateLocation();
 				rom.Objekt = objekt;
@@ -122,8 +123,10 @@ public class GenerateObjects : MonoBehaviour {
 					//SharedData.Data.Add(objekt);
 					objekt.metaData.notat = "Mangler egenskap 5530";
 				}
-				string[] parts = prop == null ? new[] { "MANGLER", "EGENSKAP", "5530" } : prop.verdi.Split(' ', '-');
+				string[] parts = prop == null ? new[] {"MANGLER", "EGENSKAP", "5530"} : prop.verdi.Split(' ', '-');
 				rom.SignText.text = "";
+
+				// Try to fit the text inside the sign
 				string text = "";
 				foreach (string s in parts) {
 					rom.SignText.text += s + " ";
@@ -136,11 +139,15 @@ public class GenerateObjects : MonoBehaviour {
 				if (objekt.parsedLocation.Count == 1) {
 					newGameObject.transform.position = position;
 					rom.OriginPoint = position;
-				} else {
+				}
+				else {
 					coordinates.Add(position);
 				}
 			}
-            if (objekt.geometri.egengeometri) rom.PoleRenderer.material = rom.Colors[1]; // Changed egengeo signs to green.
+			if (objekt.geometri.egengeometri) rom.PoleRenderer.material = rom.Colors[1]; // Changed egengeo signs to green.
+
+			UiScripts.ObjectsInstantiated++;
+			if(i % 10 == 0) yield return new WaitForEndOfFrame(); // 10 objects per frame
 
 			if (objekt.parsedLocation.Count <= 1)
 				continue; // To reduce nesting

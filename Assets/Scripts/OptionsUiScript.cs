@@ -1,22 +1,13 @@
 ﻿using System.Collections;
-using System.Diagnostics;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using Debug = UnityEngine.Debug;
 
 /// <summary>
 /// Handles the options inputs
 /// </summary>
 public class OptionsUiScript : MonoBehaviour {
-	
-	[SerializeField] private RectTransform _mainScreen;
-	[SerializeField] private RectTransform _optionsScreen;
 
-	// Main screen UI elements
-	[SerializeField] private Button _rnDataButton;
-	[SerializeField] private Button _localDataButton;
-	[SerializeField] private Button _optionsButton;
+	[SerializeField] private RectTransform _optionsScreen;
 
 	// Options screen UI elements
 	[SerializeField] private Slider _zoomSensitivitySlider;
@@ -26,51 +17,31 @@ public class OptionsUiScript : MonoBehaviour {
 	[SerializeField] private Slider _rotateSensitivitySlider;
 	[SerializeField] private InputField _rotateSensitivityInputField;
 	[SerializeField] private Slider _rotateThresholdSlider;
-	[SerializeField] private InputField _rotateThresholdInputField;	
-	[SerializeField] private Button _backButton;
-	[SerializeField] private Button _resetButton;
+	[SerializeField] private InputField _rotateThresholdInputField;
+	[SerializeField] private Slider _xDraggingSensitivitySlider;
+	[SerializeField] private InputField _xDraggingSensitivityInputField;
+	[SerializeField] private Slider _yDraggingSensitivitySlider;
+	[SerializeField] private InputField _yDraggingSensitivityInputField;
 
 	private const float DefaultZoomSens = 0.3f;
 	private const float DefaultZoomThreshold = 50f;
 	private const float DefaultRotateSens = 0.8f;
 	private const float DefaultRotateThreshold = 4f;
-	private const float AnimationDampening = 0.4f;
+	private const float DefaultDraggingSensX = 1f;
+	private const float DefaultDraggingSensY = 0.7f;
+
+	private const float AnimationDampening = 0.2f;
 	private bool _isOptionShown;
 	private bool _disableInput;
 
 	private void Start() {
-		_zoomSensitivitySlider.onValueChanged.AddListener(delegate { ZoomSensitivityChange(true); });
-		_zoomSensitivityInputField.onValueChanged.AddListener(delegate { ZoomSensitivityChange(false); });
-
-		_zoomThresholdSlider.onValueChanged.AddListener(delegate { ZoomThresholdChange(true); });
-		_zoomThresholdInputField.onValueChanged.AddListener(delegate { ZoomThresholdChange(false); });
-
-		_rotateSensitivitySlider.onValueChanged.AddListener(delegate { RotateSensitivityChange(true); });
-		_rotateSensitivityInputField.onValueChanged.AddListener(delegate { RotateSensitivityChange(false); });
-
-		_rotateThresholdSlider.onValueChanged.AddListener(delegate { RotateThresholdChange(true); });
-		_rotateThresholdInputField.onValueChanged.AddListener(delegate { RotateThresholdChange(false); });
-
-		_rnDataButton.onClick.AddListener(delegate { GoToMain(false); });
-		_localDataButton.onClick.AddListener(delegate { GoToMain(true); });
-		_optionsButton.onClick.AddListener(GoOptionsOrBack);
-		_backButton.onClick.AddListener(GoOptionsOrBack);
-		_resetButton.onClick.AddListener(ResetOptions);
-
 		// Load previous values
 		_zoomSensitivitySlider.value = PlayerPrefs.GetFloat("ZoomSens", DefaultZoomSens);
 		_zoomThresholdSlider.value = PlayerPrefs.GetFloat("ZoomThreshold", DefaultZoomThreshold);
 		_rotateSensitivitySlider.value = PlayerPrefs.GetFloat("RotateSens", DefaultRotateSens);
 		_rotateThresholdSlider.value = PlayerPrefs.GetFloat("RotateThreshold", DefaultRotateThreshold);
-	}
-
-	/// <summary>
-	/// Go to the main scene.
-	/// </summary>
-	/// <param name="localData">If local data is to be used or data from the React Native app</param>
-	public void GoToMain(bool localData) {
-		PlayerPrefs.SetInt("UseLocalData", localData ? 1 : 0);
-		SceneManager.LoadScene("Main Scene");
+		_xDraggingSensitivitySlider.value = PlayerPrefs.GetFloat("DragSensX", DefaultDraggingSensX);
+		_yDraggingSensitivitySlider.value = PlayerPrefs.GetFloat("DragSensY", DefaultDraggingSensY);
 	}
 
 	/// <summary>
@@ -86,6 +57,7 @@ public class OptionsUiScript : MonoBehaviour {
 			_zoomSensitivitySlider.value = float.Parse(_zoomSensitivityInputField.text);
 		}
 		PlayerPrefs.SetFloat("ZoomSens", _zoomSensitivitySlider.value);
+		ManualCalibration.ZoomSensitivity = _zoomSensitivitySlider.value;
 		PlayerPrefs.Save();
 	}
 
@@ -102,6 +74,7 @@ public class OptionsUiScript : MonoBehaviour {
 			_zoomThresholdSlider.value = float.Parse(_zoomThresholdInputField.text);
 		}
 		PlayerPrefs.SetFloat("ZoomThreshold", _zoomThresholdSlider.value);
+		ManualCalibration.ZoomThreshold = _zoomThresholdSlider.value;
 		PlayerPrefs.Save();
 	}
 
@@ -118,6 +91,7 @@ public class OptionsUiScript : MonoBehaviour {
 			_rotateSensitivitySlider.value = float.Parse(_rotateSensitivityInputField.text);
 		}
 		PlayerPrefs.SetFloat("RotateSens", _rotateSensitivitySlider.value);
+		ManualCalibration.RotationSensitivity = _rotateSensitivitySlider.value;
 		PlayerPrefs.Save();
 	}
 
@@ -134,6 +108,41 @@ public class OptionsUiScript : MonoBehaviour {
 			_rotateThresholdSlider.value = float.Parse(_rotateThresholdInputField.text);
 		}
 		PlayerPrefs.SetFloat("RotateThreshold", _rotateThresholdSlider.value);
+		ManualCalibration.RotationThreshold = _rotateThresholdSlider.value;
+		PlayerPrefs.Save();
+	}
+
+	/// <summary>
+	/// Handles the changing of the x dragging sensitivity slider or input field, and saves the value.
+	/// </summary>
+	/// <param name="sliderChanged">If the slider was changed.</param>
+	public void XDragSensChange(bool sliderChanged) {
+		if (_disableInput)
+			return;
+		if (sliderChanged) {
+			_xDraggingSensitivityInputField.text = _xDraggingSensitivitySlider.value.ToString();
+		} else {
+			_xDraggingSensitivitySlider.value = float.Parse(_xDraggingSensitivityInputField.text);
+		}
+		PlayerPrefs.SetFloat("DragSensX", _xDraggingSensitivitySlider.value);
+		ChangeCameraView.DragSpeedX = _xDraggingSensitivitySlider.value;
+		PlayerPrefs.Save();
+	}
+
+	/// <summary>
+	/// Handles the changing of the y dragging sensitivity slider or input field, and saves the value.
+	/// </summary>
+	/// <param name="sliderChanged">If the slider was changed.</param>
+	public void YDragSensChange(bool sliderChanged) {
+		if (_disableInput)
+			return;
+		if (sliderChanged) {
+			_yDraggingSensitivityInputField.text = _yDraggingSensitivitySlider.value.ToString();
+		} else {
+			_yDraggingSensitivitySlider.value = float.Parse(_yDraggingSensitivityInputField.text);
+		}
+		PlayerPrefs.SetFloat("DragSensY", _yDraggingSensitivitySlider.value);
+		ChangeCameraView.DragSpeedY = _yDraggingSensitivitySlider.value;
 		PlayerPrefs.Save();
 	}
 
@@ -171,21 +180,17 @@ public class OptionsUiScript : MonoBehaviour {
 			// Hide Options Screen
 			_isOptionShown = false;
 			while (_optionsScreen.anchoredPosition.x <= 719) {
-				_mainScreen.localPosition = Vector3.Lerp(_mainScreen.localPosition, new Vector3(0, 0, 0), AnimationDampening);
 				_optionsScreen.anchoredPosition = Vector2.Lerp(_optionsScreen.anchoredPosition, new Vector2(720, 0), AnimationDampening);
 				yield return new WaitForEndOfFrame();
 			}
-			_mainScreen.localPosition = Vector3.zero;
 			_optionsScreen.anchoredPosition = new Vector2(720, 0);
 		} else {
 			// Show Options Screen
 			_isOptionShown = true;
 			while (_optionsScreen.anchoredPosition.x >= 1f) {
-				_mainScreen.localPosition = Vector3.Lerp(_mainScreen.localPosition, new Vector3(0, 0, 100), AnimationDampening);
 				_optionsScreen.anchoredPosition = Vector2.Lerp(_optionsScreen.anchoredPosition, Vector2.zero, AnimationDampening);
 				yield return new WaitForEndOfFrame();
 			}
-			_mainScreen.localPosition = new Vector3(0, 0, 100);
 			_optionsScreen.anchoredPosition = Vector2.zero;
 		}
 		_disableInput = false;
