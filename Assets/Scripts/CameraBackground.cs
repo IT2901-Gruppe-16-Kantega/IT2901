@@ -59,6 +59,7 @@ public class CameraBackground : MonoBehaviour {
 
 	private void OnDestroy() {
 		// Stop the camera when the object is destroyed (scene change). Without this, the app will crash because the camera keeps sending stuff to the app.
-		_phoneCamera.Stop();
+		if (_phoneCamera != null)
+			_phoneCamera.Stop();
 	}
 }
