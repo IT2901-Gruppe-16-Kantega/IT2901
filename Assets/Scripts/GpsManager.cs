@@ -63,7 +63,8 @@ public class GpsManager : MonoBehaviour {
 
 	private void OnDestroy() {
 		// Stop the location service when this gameobject is destroyed (scene change)
-		_service.Stop();
+		if(_service != null)
+			_service.Stop();
 	}
 
 	/// <summary>

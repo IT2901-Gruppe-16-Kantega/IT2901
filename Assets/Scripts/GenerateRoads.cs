@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -14,30 +15,40 @@ public class GenerateRoads : MonoBehaviour {
 	[HideInInspector] 
 	public static bool IsCreatingRoads = true;
 
+	private bool _useLocalData;
+
 	private void Start() {
 		_apiWrapper = GetComponent<ApiWrapper>();
+		_useLocalData = PlayerPrefs.GetInt("UseLocalData", 1) == 1;
 	}
 
 	public void FetchRoad() {
 		string localData = LocalStorage.GetData("roads.json");
-		// NOTE Temporarily disabling localData so the NVDB guys can test it
-		localData = "";
-		if (string.IsNullOrEmpty(localData)) {
-			_apiWrapper.FetchObjects(532, GpsManager.MyLocation, CreateRoadMesh);
+		_useLocalData = true; // TODO in react native -> send roads as well.
+		if (_useLocalData) {
+			_apiWrapper.FetchObjects(532, GpsManager.MyLocation, roads => {
+				UiScripts.RoadsToInstantiate = roads.Count;
+				StartCoroutine(CreateRoadMesh(roads));
+			});
 		} else {
+			if (string.IsNullOrEmpty(localData)) {
+				// TODO Do something if data loaded is not there. Query the user maybe?
+			}
 			// Make a new RootObject and parse the json data from the request
 			NvdbObjekt data = JsonUtility.FromJson<NvdbObjekt>(localData);
+			UiScripts.RoadsToInstantiate = data.objekter.Count;
 
 			// Go through each Objekter in the data.objekter (the road objects)
 			List<Objekter> roadList = data.objekter.Select(obj => _apiWrapper.ParseObject(obj)).ToList();
-			CreateRoadMesh(roadList);
+			StartCoroutine(CreateRoadMesh(roadList));
 		}
 	}
 
-	public void CreateRoadMesh(List<Objekter> roads) {
+	public IEnumerator CreateRoadMesh(List<Objekter> roads) {
 		IsCreatingRoads = true;
 		float height = 0.0000f;
-		foreach (Objekter road in roads) {
+		for (int index = 0; index < roads.Count; index++) {
+			Objekter road = roads[index];
 			GameObject roadObject = new GameObject("Road");
 			roadObject.transform.parent = RoadsParent.transform;
 			roadObject.layer = 10;
@@ -76,7 +87,7 @@ public class GenerateRoads : MonoBehaviour {
 				triangles.Add((2 * j) + 3);
 				triangles.Add((2 * j) + 2);
 			}
-			roadObject.name = road.parsedLocation[0].ToString() + " - " + road.parsedLocation[road.parsedLocation.Count - 1];
+			roadObject.name = road.parsedLocation[0] + " - " + road.parsedLocation[road.parsedLocation.Count - 1];
 
 			Mesh mesh = new Mesh();
 
@@ -97,6 +108,8 @@ public class GenerateRoads : MonoBehaviour {
 			meshRenderer.material = RoadMaterial;
 			meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 			height -= 0.001f;
+			UiScripts.RoadsInstantiated++;
+			if(index % 10 == 0) yield return new WaitForEndOfFrame(); // 10 road references per frame
 		}
 		IsCreatingRoads = false;
 	}
