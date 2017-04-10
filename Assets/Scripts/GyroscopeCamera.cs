@@ -14,7 +14,7 @@ public class GyroscopeCamera : MonoBehaviour {
 	public GameObject User;
 
 	// For filtering gyro data
-	private const float LowPassFactor = 0.8f; // A float between 0.01f to 0.99f. Less means more dampening
+	private const float LowPassFactor = 0.5f; // A float between 0.01f to 0.99f. Less means more dampening
 
 	// Different rotations based on the phone's display mode
 	private readonly Quaternion _baseIdentity = Quaternion.Euler(90, 0, 0);
@@ -46,9 +46,14 @@ public class GyroscopeCamera : MonoBehaviour {
 		}
 	}
 
+	private void OnDestroy() {
+		if (_gyroIsSupported)
+			_gyro.enabled = false;
+	}
+
 	private void Update() {
 		// Can't do anything if we don't have a gyro.
-		if (!_gyroIsSupported || Calibrating || IsCarMode) {
+		if (!_gyroIsSupported || Calibrating || IsCarMode || ObjectSelect.IsDragging) {
 			return;
 		}
 		Vector3 gyroTemp = _gyro.attitude.eulerAngles;

@@ -36,7 +36,7 @@ public class GenerateObjects : MonoBehaviour {
 	public static bool IsCreatingSigns = true;
 
 	private bool _useLocalData; // true if RN data is NOT used (fetch objects from this app)
-
+	
 	private void Start() {
 		_apiWrapper = GetComponent<ApiWrapper>();
 		_roadGenerator = GetComponent<GenerateRoads>();

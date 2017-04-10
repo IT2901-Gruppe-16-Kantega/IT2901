@@ -47,6 +47,12 @@ public class UiScripts : MonoBehaviour {
 	}
 
 	private IEnumerator LoadingScreen() {
+		// Reset this to handle changing of scenes.
+		GenerateObjects.IsCreatingSigns = true;
+		GenerateRoads.IsCreatingRoads = true;
+		ObjectsInstantiated = 0;
+		RoadsInstantiated = 0;
+
 		while (GenerateObjects.IsCreatingSigns || GenerateRoads.IsCreatingRoads) {
 			_loadObjectText.text = (GenerateObjects.IsCreatingSigns) ? string.Format("Loading Objects... {0} of {1}", ObjectsInstantiated, ObjectsToInstantiate) : "Done loading objects";
 			_loadRoadText.text = (GenerateObjects.IsCreatingSigns) ? string.Format("Loading Roads... {0} of {1}", RoadsInstantiated, RoadsToInstantiate) : "Done loading roads";

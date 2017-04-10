@@ -13,7 +13,7 @@ public class ObjectSelect : MonoBehaviour {
 	private LayerMask _layers; // The layers to target
 	private EventSystem _eventSystem;
 
-	private bool _isDragging;
+	public static bool IsDragging;
 	private Vector3 _screenPosition;
 	private Vector3 _startingPoint;
 	private bool _isOverInfoBox;
@@ -28,7 +28,7 @@ public class ObjectSelect : MonoBehaviour {
 			if (_eventSystem.currentSelectedGameObject == null && !_isOverInfoBox) {
 				_target = ReturnClickedObject();
 				if (_target != null) {
-					_isDragging = true;
+					IsDragging = true;
 					_startingPoint = Input.mousePosition;
 					//Convert the targets world position to screen position.
 					_screenPosition = Camera.main.WorldToScreenPoint(_target.transform.position);
@@ -36,11 +36,13 @@ public class ObjectSelect : MonoBehaviour {
 			}
 		}
 		if (Input.GetMouseButtonUp(0)) {
-			_isDragging = false;
+			IsDragging = false;
 		}
 
-		if (!_isDragging || _target == null)
+		if (!IsDragging || _target == null)
 			return; // To reduce nesting
+		
+		// Deactivate gyro
 
         RoadObjectManager rom = _target.GetComponent<RoadObjectManager>();
         if (_target != null) {

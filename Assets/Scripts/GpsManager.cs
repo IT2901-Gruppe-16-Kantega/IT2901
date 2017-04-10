@@ -25,8 +25,8 @@ public class GpsManager : MonoBehaviour {
 	// The Service that handles the GPS on the phone
 	private LocationService _service;
 	private bool _gpsSet;
-	private const float GpsAccuracy = 5f; // Accuracy in meters
-	private const float GpsUpdateInterval = 5f; // How many meters before it updates
+	private const float GpsAccuracy = 2f; // Accuracy in meters
+	private const float GpsUpdateInterval = 2f; // How many meters before it updates
 
 	private void Start() {
 		// Set the service variable to the phones location manager (Input.location)

@@ -26,7 +26,7 @@ public class ChangeCameraView : MonoBehaviour {
 	}
 
 	private void LateUpdate() {
-		if (!_isCarMode)
+		if (!_isCarMode || ObjectSelect.IsDragging)
 			return;
 		if (Input.GetMouseButtonDown(0) || (Input.touchCount > 0 && Input.touchSupported))
 			_isRotating = true;

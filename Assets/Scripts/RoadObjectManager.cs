@@ -29,23 +29,14 @@ public class RoadObjectManager : MonoBehaviour {
 	public double DeltaBearing; // Angle moved from OriginPoint
 	public bool HasBeenMoved;
 
-	private void Start() {
-		enabled = false;
-	}
-
-	private void Update() {
-		UpdateLocation();
-	}
-
-	private void OnBecameVisible() {
-		enabled = true;
+	private void FixedUpdate() {
+		if (Vector3.Angle(
+			Camera.main.transform.forward, new Vector3(Camera.main.transform.position.x - transform.position.x, 0, Camera.main.transform.position.z - transform.position.z)) < 90f)
+			return;
 		transform.LookAt(new Vector3(Camera.main.transform.position.x,
 									0,
 									Camera.main.transform.position.z));
-	}
-
-	private void OnBecameInvisible() {
-		enabled = false;
+		UpdateLocation();
 	}
 
 	public void UpdateLocation() {
