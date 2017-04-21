@@ -31,10 +31,13 @@ public class UiScripts : MonoBehaviour {
 	private bool _isMenuShown;
 
 	private bool _isInfoShown;
-	private readonly Vector2 _infoBgMaxSize = new Vector2(320, 300);
+    private readonly Vector2 _infoBgMaxSize = new Vector2(320, 300);
 	private readonly Vector2 _infoTextMaxSize = new Vector2(300, 280);
 
-	private const float AnimationDampening = 0.4f;
+    private bool _isObjectMarked;
+    // TODO object marked
+
+    private const float AnimationDampening = 0.4f;
 
 	public static int RoadsToInstantiate;
 	public static int RoadsInstantiated;
@@ -70,7 +73,7 @@ public class UiScripts : MonoBehaviour {
 		StartCoroutine(AnimateShowInfo());
 	}
 
-	public void GenerateReport() {
+    public void GenerateReport() {
 		List<Objekter> movedSignsList = (from Transform sign in Signs.transform select sign.GetComponent<RoadObjectManager>() into rom where rom.HasBeenMoved select rom.Objekt).ToList();
 		SharedData.Data.AddRange(movedSignsList);
 		StatusText.text = LocalStorage.CreateReport("report.json", movedSignsList) ? "Report Saved Successfully" : "Report Failed To Save";
@@ -112,10 +115,10 @@ public class UiScripts : MonoBehaviour {
 		}
 	}
 
-	/// <summary>
-	/// Fade in and out status
-	/// </summary>
-	private IEnumerator AnimateStatus() {
+    /// <summary>
+    /// Fade in and out status
+    /// </summary>
+    private IEnumerator AnimateStatus() {
 		Color statusImageTargetColor = StatusImage.color;
 		Color statusTextTargetColor = StatusText.color;
 		statusImageTargetColor.a = 1;

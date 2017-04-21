@@ -54,7 +54,22 @@ public class ObjectSelect : MonoBehaviour {
 				"manuelt flyttet: " + rom.HasBeenMoved + "\n" +
 				"avstand flyttet: " + string.Format("{0:F2}m", rom.DeltaDistance) + "\n" +
 				"retning flyttet [N]: " + string.Format("{0:F2} grader", rom.DeltaBearing);
-		}
+
+            // Handling for Marking Objects
+            GameObject add = GameObject.Find("UI/Mark Object/Add");
+            GameObject remove = GameObject.Find("UI/Mark Object/Remove");
+
+            if (!rom.Objekt.markert)
+            {
+                add.SetActive(true);
+                remove.SetActive(false);
+            }
+            else
+            {
+                add.SetActive(false);
+                remove.SetActive(true);
+            }
+        }
 
 
 		// Track the mouse pointer / finger position in the x and y axis, using the depth of the target
@@ -68,7 +83,7 @@ public class ObjectSelect : MonoBehaviour {
 		_startingPoint = Input.mousePosition;
 		if (!rom.Objekt.geometri.egengeometri) { // Only move if the object does not have egengeometri
 			_target.transform.Translate(xDir, 0, yDir);
-		}
+        }
 		_startingPoint = Input.mousePosition;
 	}
 
@@ -147,4 +162,28 @@ public class ObjectSelect : MonoBehaviour {
 	public void ExitGameobject() {
 		_isOverInfoBox = false;
 	}
+
+    // For Marking objects with wrong egengeo
+    public void MarkTarget()
+    {
+        if (_target != null)
+        {
+            RoadObjectManager rom = _target.GetComponent<RoadObjectManager>();
+ 
+            GameObject add = GameObject.Find("UI/Mark Object/Add");
+            GameObject remove = GameObject.Find("UI/Mark Object/Remove");
+
+            if (rom.Objekt.markert)
+            {
+                add.SetActive(true);
+                remove.SetActive(false);
+            }else
+            {
+                add.SetActive(false);
+                remove.SetActive(true);
+            }
+            rom.Objekt.markert = !rom.Objekt.markert;
+            Debug.Log(rom.Objekt.geometri.egengeometri);
+        }
+    }
 }

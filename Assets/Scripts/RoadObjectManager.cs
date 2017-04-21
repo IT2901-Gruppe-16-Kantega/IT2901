@@ -52,13 +52,13 @@ public class RoadObjectManager : MonoBehaviour {
 	}
 
 	public void Selected() {
-		PoleRenderer.material = Colors[3]; // Changed to blue - Vegard
-	}
+		PoleRenderer.material = Colors[3];
+    }
 
-	public void UnSelected() {
-		if(Objekt.geometri.egengeometri)
-
+	public void UnSelected() { 
 		PoleRenderer.material = (Objekt.geometri.egengeometri) ? Colors[1] : (HasBeenMoved ? Colors[2] : Colors[0]);
+        if (Objekt.markert) PoleRenderer.material = Colors[2];
+
 	}
 
 	public void ResetPosition() {

@@ -147,6 +147,7 @@ public class Objekter {
 	public List<GpsManager.GpsLocation> parsedLocation;
 	public Relasjoner relasjoner;
 	public MetaData metaData;
+    public bool markert = false;
 }
 
 [Serializable]
