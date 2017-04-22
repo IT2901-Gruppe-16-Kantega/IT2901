@@ -30,7 +30,7 @@ public class ApiWrapper : MonoBehaviour {
 	// Use this to create and return a fetch request
 	private WWW CreateFetchRequest(int id, double latitude, double longitude) {
 		// The query to fetch road signs
-		string url = ApiUrl + "vegobjekter/" + id + "?inkluder=geometri,egenskaper,relasjoner&pretty=true&srid=4326&kartutsnitt=" +
+		string url = ApiUrl + "vegobjekter/" + id + "?inkluder=alle&pretty=true&srid=4326&kartutsnitt=" +
 			(longitude - DeltaLong) + "," +
 			(latitude - DeltaLat) + "," +
 			(longitude + DeltaLong) + "," +
