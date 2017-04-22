@@ -6,6 +6,7 @@ public class SignPlateAdder : MonoBehaviour {
 	public GameObject BlueCircle;
 	public GameObject RedCircle;
 	public GameObject RedTriangle;
+	public Renderer PoleRenderer;
 
 	public void AddPlate(Objekter objekt) {
 		GameObject signPlate = Instantiate(GetGameObject(objekt), Vector3.zero, Quaternion.identity, transform) as GameObject;
@@ -16,6 +17,9 @@ public class SignPlateAdder : MonoBehaviour {
 		rom.RoadObjectLocation = objekt.parsedLocation[0];
 		rom.UpdateLocation();
 		rom.Objekt = objekt;
+		rom.SignPost = gameObject; // let the RoadObjectManager know that this is its signpost.
+		rom.PoleRenderer = PoleRenderer;
+		rom.UnSelected();
 		Egenskaper prop = objekt.egenskaper.Find(egenskap => egenskap.id == 5530); // 5530 is sign number
 		if (prop == null) {
 			// TODO HANDLING OBJECTS MISSING STUFF HAS BEEN MOVED TO REACT NATIVE. Keep this in case it is needed.

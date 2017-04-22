@@ -13,7 +13,6 @@ public class RoadObjectManager : MonoBehaviour {
 	public TextMesh SignText;
 
 	public Material[] Colors = new Material[4];
-	public Renderer PoleRenderer;
 	public TextMesh DistanceText; 
 
 	[HideInInspector]
@@ -28,6 +27,9 @@ public class RoadObjectManager : MonoBehaviour {
 	[HideInInspector]
 	public double DeltaBearing; // Angle moved from OriginPoint
 	public bool HasBeenMoved;
+
+	public GameObject SignPost;
+	public Renderer PoleRenderer;
 
 	private void FixedUpdate() {
 		if (Vector3.Angle(

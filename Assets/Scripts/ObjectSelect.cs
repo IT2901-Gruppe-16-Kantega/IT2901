@@ -9,7 +9,8 @@ using UnityEngine.UI;
 public class ObjectSelect : MonoBehaviour {
 
 	public Text ObjectText; // The text in the info box
-	private GameObject _target; //The GameObject that is pressed
+	private GameObject _targetPlate; //The GameObject that is pressed
+	private GameObject _targetPole; // the plate's pole which we want to move
 	private LayerMask _layers; // The layers to target
 	private EventSystem _eventSystem;
 
@@ -26,12 +27,13 @@ public class ObjectSelect : MonoBehaviour {
 	private void Update() {
 		if (Input.GetMouseButtonDown(0)) {
 			if (_eventSystem.currentSelectedGameObject == null && !_isOverInfoBox) {
-				_target = ReturnClickedObject();
-				if (_target != null) {
+				_targetPlate = ReturnClickedObject();
+				if (_targetPlate != null) {
+					_targetPole = _targetPlate.GetComponent<RoadObjectManager>().SignPost;
 					IsDragging = true;
 					_startingPoint = Input.mousePosition;
 					//Convert the targets world position to screen position.
-					_screenPosition = Camera.main.WorldToScreenPoint(_target.transform.position);
+					_screenPosition = Camera.main.WorldToScreenPoint(_targetPlate.transform.position);
 				}
 			}
 		}
@@ -39,13 +41,13 @@ public class ObjectSelect : MonoBehaviour {
 			IsDragging = false;
 		}
 
-		if (!IsDragging || _target == null)
+		if (!IsDragging || _targetPlate == null || _targetPole == null)
 			return; // To reduce nesting
-		
+
 		// Deactivate gyro
 
-        RoadObjectManager rom = _target.GetComponent<RoadObjectManager>();
-        if (_target != null) {
+		RoadObjectManager rom = _targetPlate.GetComponent<RoadObjectManager>();
+		if (_targetPlate != null) {
 			rom.HasBeenMoved = Math.Abs(rom.DeltaDistance) > 0;
 			ObjectText.text =
 				"id: " + rom.Objekt.id + "\n" +
@@ -55,21 +57,18 @@ public class ObjectSelect : MonoBehaviour {
 				"avstand flyttet: " + string.Format("{0:F2}m", rom.DeltaDistance) + "\n" +
 				"retning flyttet [N]: " + string.Format("{0:F2} grader", rom.DeltaBearing);
 
-            // Handling for Marking Objects
-            GameObject add = GameObject.Find("UI/Mark Object/Add");
-            GameObject remove = GameObject.Find("UI/Mark Object/Remove");
+			// Handling for Marking Objects
+			GameObject add = GameObject.Find("UI/Mark Object/Add");
+			GameObject remove = GameObject.Find("UI/Mark Object/Remove");
 
-            if (!rom.Objekt.markert)
-            {
-                add.SetActive(true);
-                remove.SetActive(false);
-            }
-            else
-            {
-                add.SetActive(false);
-                remove.SetActive(true);
-            }
-        }
+			if (!rom.Objekt.markert) {
+				add.SetActive(true);
+				remove.SetActive(false);
+			} else {
+				add.SetActive(false);
+				remove.SetActive(true);
+			}
+		}
 
 
 		// Track the mouse pointer / finger position in the x and y axis, using the depth of the target
@@ -79,11 +78,11 @@ public class ObjectSelect : MonoBehaviour {
 		Vector3 screenPointOffset = currentScreenSpace - _startingPoint;
 		float xDir, yDir;
 		GetXandYOffsets(screenPointOffset, out xDir, out yDir);
-		
+
 		_startingPoint = Input.mousePosition;
 		if (!rom.Objekt.geometri.egengeometri) { // Only move if the object does not have egengeometri
-			_target.transform.Translate(xDir, 0, yDir);
-        }
+			_targetPole.transform.Translate(xDir, 0, yDir);
+		}
 		_startingPoint = Input.mousePosition;
 	}
 
@@ -132,10 +131,10 @@ public class ObjectSelect : MonoBehaviour {
 			newTarget.GetComponent<RoadObjectManager>().Selected();
 		}
 		// If new Target is different, change deselect previous target
-		if (newTarget != _target && _target != null) {
-			_target.GetComponent<RoadObjectManager>().UnSelected();
+		if (newTarget != _targetPlate && _targetPlate != null) {
+			_targetPlate.GetComponent<RoadObjectManager>().UnSelected();
 		}
-		
+
 		if (newTarget == null)
 			ObjectText.text = "Ingenting valgt";
 		return newTarget;
@@ -145,8 +144,8 @@ public class ObjectSelect : MonoBehaviour {
 	/// Resets the signs position
 	/// </summary>
 	public void ResetSignPosition() {
-		if (_target != null)
-			_target.GetComponent<RoadObjectManager>().ResetPosition();
+		if (_targetPlate != null)
+			_targetPlate.GetComponent<RoadObjectManager>().ResetPosition();
 	}
 
 	/// <summary>
@@ -163,27 +162,23 @@ public class ObjectSelect : MonoBehaviour {
 		_isOverInfoBox = false;
 	}
 
-    // For Marking objects with wrong egengeo
-    public void MarkTarget()
-    {
-        if (_target != null)
-        {
-            RoadObjectManager rom = _target.GetComponent<RoadObjectManager>();
- 
-            GameObject add = GameObject.Find("UI/Mark Object/Add");
-            GameObject remove = GameObject.Find("UI/Mark Object/Remove");
+	// For Marking objects with wrong egengeo
+	public void MarkTarget() {
+		if (_targetPlate != null) {
+			RoadObjectManager rom = _targetPlate.GetComponent<RoadObjectManager>();
 
-            if (rom.Objekt.markert)
-            {
-                add.SetActive(true);
-                remove.SetActive(false);
-            }else
-            {
-                add.SetActive(false);
-                remove.SetActive(true);
-            }
-            rom.Objekt.markert = !rom.Objekt.markert;
-            Debug.Log(rom.Objekt.geometri.egengeometri);
-        }
-    }
+			GameObject add = GameObject.Find("UI/Mark Object/Add");
+			GameObject remove = GameObject.Find("UI/Mark Object/Remove");
+
+			if (rom.Objekt.markert) {
+				add.SetActive(true);
+				remove.SetActive(false);
+			} else {
+				add.SetActive(false);
+				remove.SetActive(true);
+			}
+			rom.Objekt.markert = !rom.Objekt.markert;
+			Debug.Log(rom.Objekt.geometri.egengeometri);
+		}
+	}
 }
