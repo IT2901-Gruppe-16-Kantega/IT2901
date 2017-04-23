@@ -146,12 +146,12 @@ public class Objekter {
 	public List<Vegsegmenter> vegsegmenter;
 	public List<GpsManager.GpsLocation> parsedLocation;
 	public Relasjoner relasjoner;
-	public MetaData metaData;
-    public bool markert = false;
+	public Metadata metadata;
 }
 
 [Serializable]
-public class MetaData {
+public class Metadata {
+	public Type type;
 	public double distance;
 	public double bearing;
 	public string notat;

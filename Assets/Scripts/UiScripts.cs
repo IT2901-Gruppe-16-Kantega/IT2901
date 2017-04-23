@@ -74,7 +74,17 @@ public class UiScripts : MonoBehaviour {
 	}
 
     public void GenerateReport() {
-		List<Objekter> movedSignsList = (from Transform sign in Signs.transform select sign.GetComponent<RoadObjectManager>() into rom where rom.HasBeenMoved select rom.Objekt).ToList();
+		// Add all signplates that has been moved or is wrong
+		List<Objekter> movedSignsList = (from Transform signPost in Signs.transform from Transform signPlate in signPost.transform select signPlate.GetComponent<RoadObjectManager>() into rom where rom.HasBeenMoved || rom.SomethingIsWrong select rom.Objekt).ToList();
+	    /* // NON LINQ CODE
+		 * List<Objekter> movedSignsList = new List<Objekter>();
+		 * foreach (Transform signPost in Signs.transform) {
+		 *   foreach (Transform signPlate in signPost.transform) {
+		 *     RoadObjectManager rom = signPlate.GetComponent<RoadObjectManager>();
+		 *     if(rom.HasBeenMoved || rom.SomethingIsWrong) movedSignsList.Add(rom.Objekt);
+		 *   }
+		 * }
+		 */
 		SharedData.Data.AddRange(movedSignsList);
 		StatusText.text = LocalStorage.CreateReport("report.json", movedSignsList) ? "Report Saved Successfully" : "Report Failed To Save";
 		StartCoroutine(AnimateStatus());

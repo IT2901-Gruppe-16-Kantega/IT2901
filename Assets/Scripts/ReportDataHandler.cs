@@ -67,7 +67,7 @@ public class ReportDataHandler : MonoBehaviour {
 			Text objektInfoText = objektNameText.transform.GetChild(0).GetComponent<Text>();
 			if (objektInfoText == null)
 				continue;
-			objektInfoText.text = string.Format("Distance from origin: \t\t\t{0:F2} meters\nbearing from origin: \t\t\t{1:F2} degrees\nNotes: \t\t\t\t\t{2}", objekt.metaData.distance, objekt.metaData.bearing, objekt.metaData.notat);
+			objektInfoText.text = string.Format("Distance from origin: \t\t\t{0:F2} meters\nbearing from origin: \t\t\t{1:F2} degrees\nNotes: \t\t\t\t\t{2}", objekt.metadata.distance, objekt.metadata.bearing, objekt.metadata.notat);
 			objektInfoText.transform.parent.SetParent(parent.transform);
 			parent.transform.localScale = Vector3.one;
 			parent.transform.localPosition = new Vector3(350, -height, 10);

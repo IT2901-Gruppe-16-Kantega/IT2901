@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,11 +16,12 @@ public class GenerateObjects : MonoBehaviour {
 
 	// The list containing the locations of each road object
 	private List<Objekter> _roadObjectList = new List<Objekter>();
+	private readonly Hashtable _signPosts = new Hashtable();
 
 	// The object to instantiate (create) when placing the road objects
-	public GameObject BlueSign;
-	public GameObject RedSign;
-	public GameObject RedTriangle;
+	public GameObject SignPost;
+	public GameObject DefaultObject;
+	public GameObject LineObject;
 
 	public GameObject SignsParent;
 
@@ -32,11 +34,11 @@ public class GenerateObjects : MonoBehaviour {
 	[SerializeField]
 	private GenerateRoads _roadGenerator;
 
-	[HideInInspector] 
+	[HideInInspector]
 	public static bool IsCreatingSigns = true;
 
 	private bool _useLocalData; // true if RN data is NOT used (fetch objects from this app)
-	
+
 	private void Start() {
 		_apiWrapper = GetComponent<ApiWrapper>();
 		_roadGenerator = GetComponent<GenerateRoads>();
@@ -72,7 +74,6 @@ public class GenerateObjects : MonoBehaviour {
 		string localData = LocalStorage.GetData("data.json");
 		if (_useLocalData) {
 			_apiWrapper.FetchObjects(96, GpsManager.MyLocation, objects => {
-				Debug.Log("Returned " + objects.Count + " objects"); // TODO remove when done. Is only for debugging
 				_roadObjectList = objects;
 				UiScripts.ObjectsToInstantiate = objects.Count;
 				StartCoroutine(MakeObjects(_roadObjectList));
@@ -102,81 +103,66 @@ public class GenerateObjects : MonoBehaviour {
 		IsCreatingSigns = true;
 		for (int i = 0; i < objects.Count; i++) {
 			Objekter objekt = objects[i];
-// Instantiate a new GameObject on that location relative to us
-			GameObject newGameObject = Instantiate(GetGameObject(objekt), Vector3.zero, Quaternion.identity) as GameObject;
-			if (newGameObject == null)
-				continue; // In case anything weird happens.
-			List<Vector3> coordinates = new List<Vector3>();
-			RoadObjectManager rom = newGameObject.GetComponent<RoadObjectManager>();
-			foreach (GpsManager.GpsLocation location in objekt.parsedLocation) {
-				Vector3 position = HelperFunctions.GetPositionFromCoords(location);
-
-				// Set the parent of the new GameObject to be us (so we dont have a huge list in root)
-				newGameObject.transform.parent = SignsParent.transform;
-
-				rom.RoadObjectLocation = location;
-				rom.UpdateLocation();
-				rom.Objekt = objekt;
-				Egenskaper prop = objekt.egenskaper.Find(egenskap => egenskap.id == 5530); // 5530 is sign number
-				if (prop == null) {
-					// TODO HANDLING OBJECTS MISSING STUFF HAS BEEN MOVED TO REACT NATIVE. Keep this in case it is needed.
-					//SharedData.Data.Add(objekt);
-					objekt.metaData.notat = "Mangler egenskap 5530";
-				}
-				string[] parts = prop == null ? new[] {"MANGLER", "EGENSKAP", "5530"} : prop.verdi.Split(' ', '-');
-				rom.SignText.text = "";
-
-				// Try to fit the text inside the sign
-				string text = "";
-				foreach (string s in parts) {
-					rom.SignText.text += s + " ";
-					if (rom.SignText.GetComponent<Renderer>().bounds.extents.x > .5) {
-						rom.SignText.text = text.TrimEnd() + "\n" + s + " ";
+			int objectType = objekt.metadata.type.id;
+			if (objectType == 96) {
+				// If it's a signplate
+				Foreldre foreldre = objekt.relasjoner.foreldre.Find(f => f.type.id == 95);
+				// Check if its parent is in the hashmap already and add a plate to it
+				if (foreldre != null && _signPosts.ContainsKey(foreldre.vegobjekter[0])) {
+					GameObject signPost = _signPosts[foreldre.vegobjekter[0]] as GameObject;
+					if (signPost)
+						signPost.GetComponent<SignPlateAdder>().AddPlate(objekt);
+				} else if (foreldre == null && _signPosts.ContainsKey(objekt.id)) {
+					// Check if it doesnt have a sign point parent (95) and instantiate it and add it to the report
+					GameObject signPost = _signPosts[objekt.id] as GameObject;
+					if (signPost)
+						signPost.GetComponent<SignPlateAdder>().AddPlate(objekt);
+					objekt.metadata.notat = "Mangler forelder: skiltpunkt (95)";
+					SharedData.Data.Add(objekt);
+				} else {
+					// add the parent to the hashmap and add a plate to it
+					GameObject newSignPost =
+						Instantiate(SignPost, HelperFunctions.GetPositionFromCoords(objekt.parsedLocation[0]), Quaternion.identity, SignsParent.transform) as GameObject;
+					// Add signpost to hashmap using the signpoint id, otherwise use signplate id
+					_signPosts.Add(foreldre != null ? foreldre.vegobjekter[0] : objekt.id, newSignPost);
+					if (newSignPost) {
+						if (foreldre != null) newSignPost.name = foreldre.vegobjekter[0].ToString();
+						newSignPost.GetComponent<SignPlateAdder>().AddPlate(objekt);
 					}
-					text = rom.SignText.text;
 				}
-
+			} else {
+				// For everything else
 				if (objekt.parsedLocation.Count == 1) {
-					newGameObject.transform.position = position;
-					rom.OriginPoint = position;
-				}
-				else {
-					coordinates.Add(position);
+					// if it has a single location
+					GameObject newDefaultGameObject = Instantiate(DefaultObject, HelperFunctions.GetPositionFromCoords(objekt.parsedLocation[0]), Quaternion.identity, SignsParent.transform) as GameObject;
+					if (newDefaultGameObject != null) {
+						RoadObjectManager rom = newDefaultGameObject.GetComponent<RoadObjectManager>();
+						rom.RoadObjectLocation = objekt.parsedLocation[0];
+						rom.Objekt = objekt;
+						rom.UpdateLocation();
+						rom.SignText.text = objekt.metadata.type.navn;
+					}
+				} else {
+					// if it has more (or zero)
+					Vector3[] coordinates = new Vector3[objekt.parsedLocation.Count];
+					for (int index = 0; index < objekt.parsedLocation.Count; index++) {
+						GpsManager.GpsLocation location = objekt.parsedLocation[index];
+						coordinates[index] = HelperFunctions.GetPositionFromCoords(location);
+					}
+
+					if (coordinates.Length == 0)
+						continue;
+					GameObject lineObject = Instantiate(LineObject, Vector3.zero, Quaternion.identity, SignsParent.transform) as GameObject;
+					if (lineObject != null) {
+						LineRenderer lineRenderer = lineObject.GetComponent<LineRenderer>();
+						lineRenderer.SetVertexCount(coordinates.Length);
+						lineRenderer.SetPositions(coordinates.ToArray());
+					}
 				}
 			}
-			if (objekt.geometri.egengeometri) rom.PoleRenderer.material = rom.Colors[1]; // Changed egengeo signs to green.
-
-			UiScripts.ObjectsInstantiated++;
-			if(i % 10 == 0) yield return new WaitForEndOfFrame(); // 10 objects per frame
-
-			if (objekt.parsedLocation.Count <= 1)
-				continue; // To reduce nesting
-			LineRenderer lineRenderer = newGameObject.AddComponent<LineRenderer>();
-			lineRenderer.material = new Material(Shader.Find("Particles/Additive"));
-			lineRenderer.SetColors(Color.white, Color.white);
-			lineRenderer.SetWidth(2, 2);
-			lineRenderer.SetVertexCount(coordinates.Count);
-
-			lineRenderer.SetPositions(coordinates.ToArray());
+			if (i % 10 == 0)
+				yield return new WaitForEndOfFrame();
 		}
 		IsCreatingSigns = false;
-	}
-
-	private GameObject GetGameObject(Objekter objekt) {
-		Egenskaper egenskap = objekt.egenskaper.Find(e => e.id == 5530);
-
-		if (egenskap == null)
-			return BlueSign;
-		int signNumber;
-		int.TryParse(egenskap.verdi.Substring(0, 1), out signNumber);
-
-		switch (signNumber) {
-			case 1:
-				return RedSign;
-			case 2:
-				return RedTriangle;
-			default:
-				return BlueSign;
-		}
 	}
 }

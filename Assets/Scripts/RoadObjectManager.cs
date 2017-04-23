@@ -13,7 +13,6 @@ public class RoadObjectManager : MonoBehaviour {
 	public TextMesh SignText;
 
 	public Material[] Colors = new Material[4];
-	public Renderer PoleRenderer;
 	public TextMesh DistanceText; 
 
 	[HideInInspector]
@@ -28,16 +27,10 @@ public class RoadObjectManager : MonoBehaviour {
 	[HideInInspector]
 	public double DeltaBearing; // Angle moved from OriginPoint
 	public bool HasBeenMoved;
+	public bool SomethingIsWrong;
 
-	private void FixedUpdate() {
-		if (Vector3.Angle(
-			Camera.main.transform.forward, new Vector3(Camera.main.transform.position.x - transform.position.x, 0, Camera.main.transform.position.z - transform.position.z)) < 90f)
-			return;
-		transform.LookAt(new Vector3(Camera.main.transform.position.x,
-									0,
-									Camera.main.transform.position.z));
-		UpdateLocation();
-	}
+	public GameObject SignPost;
+	public Renderer PoleRenderer;
 
 	public void UpdateLocation() {
 		Distance = new Vector3(transform.position.x, 0, transform.position.z).magnitude;
@@ -46,8 +39,8 @@ public class RoadObjectManager : MonoBehaviour {
 		DeltaBearing = Math.Atan2(transform.position.z - OriginPoint.z, transform.position.x - OriginPoint.x) * 180 / Math.PI - 90;
 		if (DeltaBearing < 0) DeltaBearing += 360;
 		if (!HasBeenMoved) DeltaBearing = 0;
-		Objekt.metaData.distance = DeltaDistance;
-		Objekt.metaData.bearing = DeltaBearing;
+		Objekt.metadata.distance = DeltaDistance;
+		Objekt.metadata.bearing = DeltaBearing;
 		DistanceText.text = Distance.ToString("F2") + " m";
 	}
 
@@ -55,18 +48,18 @@ public class RoadObjectManager : MonoBehaviour {
 		PoleRenderer.material = Colors[3];
     }
 
-	public void UnSelected() { 
+	public void UnSelected() {
 		PoleRenderer.material = (Objekt.geometri.egengeometri) ? Colors[1] : (HasBeenMoved ? Colors[2] : Colors[0]);
-        if (Objekt.markert) PoleRenderer.material = Colors[2];
+        if (SomethingIsWrong) PoleRenderer.material = Colors[2];
 
 	}
 
 	public void ResetPosition() {
-		transform.position = OriginPoint;
+		SignPost.transform.position = OriginPoint;
 		HasBeenMoved = false;
 		DeltaDistance = (new Vector3(transform.position.x, 0, transform.position.z) - new Vector3(OriginPoint.x, 0, OriginPoint.z)).magnitude;
 		DeltaBearing = 0;
-		Objekt.metaData.distance = DeltaDistance;
-		Objekt.metaData.bearing = DeltaBearing;
+		Objekt.metadata.distance = DeltaDistance;
+		Objekt.metadata.bearing = DeltaBearing;
 	}
 }
