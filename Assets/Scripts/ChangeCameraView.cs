@@ -12,7 +12,7 @@ public class ChangeCameraView : MonoBehaviour {
 	public static float DragSpeedY = 0.7f;
 	private const float TouchLimiterX = 0.1f;
 	private const float TouchLimiterY = 0.05f;
-	[SerializeField] private Renderer _userRenderer;
+	public Renderer UserRenderer;
 	private bool _isRotating;
 
 	private GyroscopeCamera _gyroscopeCamera;
@@ -26,6 +26,7 @@ public class ChangeCameraView : MonoBehaviour {
 	}
 
 	private void LateUpdate() {
+		UserRenderer.gameObject.transform.forward = new Vector3(transform.forward.x, 0, transform.forward.z);
 		if (!_isCarMode || ObjectSelect.IsDragging)
 			return;
 		if (Input.GetMouseButtonDown(0) || (Input.touchCount > 0 && Input.touchSupported))
@@ -41,11 +42,11 @@ public class ChangeCameraView : MonoBehaviour {
 			xVal = Input.touches[0].deltaPosition.x * TouchLimiterX * _mainCamera.fieldOfView / 60f;
 		}
 		
-		transform.RotateAround(_userRenderer.transform.position, transform.right, yVal * DragSpeedY);
+		transform.RotateAround(UserRenderer.transform.position, transform.right, yVal * DragSpeedY);
 		if (transform.localEulerAngles.x < 0 || transform.localEulerAngles.x > 60)
 			transform.position = previousPosition;
 
-		transform.RotateAround(_userRenderer.transform.position, Vector3.up, -xVal * DragSpeedX);
+		transform.RotateAround(UserRenderer.transform.position, Vector3.up, -xVal * DragSpeedX);
 		transform.position = new Vector3(transform.position.x, 27, transform.position.z);
 		transform.localEulerAngles = new Vector3(
 			ClampAngle(transform.localEulerAngles.x, 0, 60),
@@ -73,14 +74,14 @@ public class ChangeCameraView : MonoBehaviour {
 			// Move main camera back into the start position
 			_targetPosition = _startPosition;
 			_gyroscopeCamera.IsCarMode = false;
-			_userRenderer.enabled = false;
+			UserRenderer.enabled = false;
 			_isCarMode = false;
 			StartCoroutine(LookAtUser());
 		} else {
 			// Move main camera back and up into third person view
-			_targetPosition = _startPosition + _userRenderer.gameObject.transform.forward * BackOffset + _userRenderer.gameObject.transform.up * UpOffset;
+			_targetPosition = _startPosition + UserRenderer.gameObject.transform.forward * BackOffset + UserRenderer.gameObject.transform.up * UpOffset;
 			_gyroscopeCamera.IsCarMode = true;
-			_userRenderer.enabled = true;
+			UserRenderer.enabled = true;
 			_isCarMode = true;
 			StartCoroutine(LookAtUser());
 		}
@@ -93,8 +94,10 @@ public class ChangeCameraView : MonoBehaviour {
 		ManualCalibration.DisableCalibration = true;
 		while ((transform.position - _targetPosition).magnitude > 0.1f) {
 			transform.position = Vector3.MoveTowards(transform.position, _targetPosition, MovementSpeed * Time.deltaTime);
+			transform.forward = Vector3.Lerp(transform.forward, UserRenderer.gameObject.transform.forward, MovementSpeed/50 * Time.deltaTime);
 			yield return new WaitForEndOfFrame();
 		}
+		transform.forward = UserRenderer.gameObject.transform.forward;
 		transform.position = _targetPosition; // To correct any floating errors.
 		ManualCalibration.DisableCalibration = false;
 	}

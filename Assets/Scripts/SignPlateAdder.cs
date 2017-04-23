@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class SignPlateAdder : MonoBehaviour {
 	public string SignPostId;
@@ -7,11 +8,25 @@ public class SignPlateAdder : MonoBehaviour {
 	public GameObject RedCircle;
 	public GameObject RedTriangle;
 	public Renderer PoleRenderer;
+	private readonly List<GameObject> _children = new List<GameObject>();
+
+	private void FixedUpdate() {
+		if (Vector3.Angle(
+			Camera.main.transform.forward, new Vector3(Camera.main.transform.position.x - transform.position.x, 0, Camera.main.transform.position.z - transform.position.z)) < 90f)
+			return;
+		transform.LookAt(new Vector3(Camera.main.transform.position.x,
+									0,
+									Camera.main.transform.position.z));
+		foreach (GameObject child in _children) {
+			child.GetComponent<RoadObjectManager>().UpdateLocation();
+		}
+	}
 
 	public void AddPlate(Objekter objekt) {
 		GameObject signPlate = Instantiate(GetGameObject(objekt), Vector3.zero, Quaternion.identity, transform) as GameObject;
 		if (signPlate == null)
 			return; // in case anything weird happens
+		signPlate.name = objekt.id.ToString();
 		RoadObjectManager rom = signPlate.GetComponent<RoadObjectManager>();
 
 		rom.RoadObjectLocation = objekt.parsedLocation[0];
@@ -46,6 +61,14 @@ public class SignPlateAdder : MonoBehaviour {
 		if (SignPlateCount > 1) {
 			// Unnecessary to have more than one distance text
 			rom.DistanceText.gameObject.SetActive(false);
+		}
+		_children.Add(signPlate);
+	}
+
+	public void MarkPlates(bool value) {
+		foreach (GameObject signPlate in _children) {
+			RoadObjectManager rom = signPlate.GetComponent<RoadObjectManager>();
+			rom.SomethingIsWrong = value;
 		}
 	}
 

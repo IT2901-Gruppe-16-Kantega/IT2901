@@ -13,6 +13,8 @@ public class ObjectSelect : MonoBehaviour {
 	private GameObject _targetPole; // the plate's pole which we want to move
 	private LayerMask _layers; // The layers to target
 	private EventSystem _eventSystem;
+	public GameObject MarkerOn;
+	public GameObject MarkerOff;
 
 	public static bool IsDragging;
 	private Vector3 _screenPosition;
@@ -54,19 +56,17 @@ public class ObjectSelect : MonoBehaviour {
 				"egengeo: " + rom.Objekt.geometri.egengeometri + "\n" +
 				"Skiltnummer: " + rom.Objekt.egenskaper.Find(egenskap => egenskap.id == 5530).verdi + "\n" +
 				"manuelt flyttet: " + rom.HasBeenMoved + "\n" +
+				"markert som feil: " + rom.SomethingIsWrong + "\n" +
 				"avstand flyttet: " + string.Format("{0:F2}m", rom.DeltaDistance) + "\n" +
 				"retning flyttet [N]: " + string.Format("{0:F2} grader", rom.DeltaBearing);
 
 			// Handling for Marking Objects
-			GameObject add = GameObject.Find("UI/Mark Object/Add");
-			GameObject remove = GameObject.Find("UI/Mark Object/Remove");
-
-			if (!rom.Objekt.markert) {
-				add.SetActive(true);
-				remove.SetActive(false);
+			if (!rom.SomethingIsWrong) {
+				MarkerOn.SetActive(true);
+				MarkerOff.SetActive(false);
 			} else {
-				add.SetActive(false);
-				remove.SetActive(true);
+				MarkerOn.SetActive(false);
+				MarkerOff.SetActive(true);
 			}
 		}
 
@@ -164,21 +164,26 @@ public class ObjectSelect : MonoBehaviour {
 
 	// For Marking objects with wrong egengeo
 	public void MarkTarget() {
-		if (_targetPlate != null) {
-			RoadObjectManager rom = _targetPlate.GetComponent<RoadObjectManager>();
-
-			GameObject add = GameObject.Find("UI/Mark Object/Add");
-			GameObject remove = GameObject.Find("UI/Mark Object/Remove");
-
-			if (rom.Objekt.markert) {
-				add.SetActive(true);
-				remove.SetActive(false);
-			} else {
-				add.SetActive(false);
-				remove.SetActive(true);
-			}
-			rom.Objekt.markert = !rom.Objekt.markert;
-			Debug.Log(rom.Objekt.geometri.egengeometri);
+		if (_targetPlate == null || _targetPole == null) 
+			return;
+		RoadObjectManager rom = _targetPlate.GetComponent<RoadObjectManager>();
+		if (rom.SomethingIsWrong) {
+			MarkerOn.SetActive(true);
+			MarkerOff.SetActive(false);
+		} else {
+			MarkerOn.SetActive(false);
+			MarkerOff.SetActive(true);
 		}
+		rom.SomethingIsWrong = !rom.SomethingIsWrong;
+		_targetPole.GetComponent<SignPlateAdder>().MarkPlates(rom.SomethingIsWrong);
+		rom.Objekt.metadata.notat = rom.SomethingIsWrong ? "Markert som feil av bruker (arvet fra skiltpunkt)" : "";
+		ObjectText.text =
+				"id: " + rom.Objekt.id + "\n" +
+				"egengeo: " + rom.Objekt.geometri.egengeometri + "\n" +
+				"Skiltnummer: " + rom.Objekt.egenskaper.Find(egenskap => egenskap.id == 5530).verdi + "\n" +
+				"manuelt flyttet: " + rom.HasBeenMoved + "\n" +
+				"markert som feil: " + rom.SomethingIsWrong + "\n" +
+				"avstand flyttet: " + string.Format("{0:F2}m", rom.DeltaDistance) + "\n" +
+				"retning flyttet [N]: " + string.Format("{0:F2} grader", rom.DeltaBearing);
 	}
 }

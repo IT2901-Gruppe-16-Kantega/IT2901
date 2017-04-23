@@ -125,8 +125,10 @@ public class GenerateObjects : MonoBehaviour {
 						Instantiate(SignPost, HelperFunctions.GetPositionFromCoords(objekt.parsedLocation[0]), Quaternion.identity, SignsParent.transform) as GameObject;
 					// Add signpost to hashmap using the signpoint id, otherwise use signplate id
 					_signPosts.Add(foreldre != null ? foreldre.vegobjekter[0] : objekt.id, newSignPost);
-					if (newSignPost)
+					if (newSignPost) {
+						if (foreldre != null) newSignPost.name = foreldre.vegobjekter[0].ToString();
 						newSignPost.GetComponent<SignPlateAdder>().AddPlate(objekt);
+					}
 				}
 			} else {
 				// For everything else
