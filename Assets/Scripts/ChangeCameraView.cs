@@ -33,7 +33,8 @@ public class ChangeCameraView : MonoBehaviour {
 			_isRotating = true;
 		if (Input.GetMouseButtonUp(0) || (Input.touchCount == 0 && Input.touchSupported))
 			_isRotating = false;
-		if (!_isRotating) return;
+		if (!_isRotating)
+			return;
 		Vector3 previousPosition = transform.position;
 		float yVal = Input.GetAxis("Mouse Y");
 		float xVal = Input.GetAxis("Mouse X");
@@ -41,7 +42,7 @@ public class ChangeCameraView : MonoBehaviour {
 			yVal = Input.touches[0].deltaPosition.y * TouchLimiterY * _mainCamera.fieldOfView / 60f;
 			xVal = Input.touches[0].deltaPosition.x * TouchLimiterX * _mainCamera.fieldOfView / 60f;
 		}
-		
+
 		transform.RotateAround(UserRenderer.transform.position, transform.right, yVal * DragSpeedY);
 		if (transform.localEulerAngles.x < 0 || transform.localEulerAngles.x > 60)
 			transform.position = previousPosition;
@@ -57,12 +58,16 @@ public class ChangeCameraView : MonoBehaviour {
 
 	private static float ClampAngle(float angle, float min, float max) {
 		if (angle < 90 || angle > 270) {
-			if (angle > 180) angle -= 360;
-			if (max > 180) max -= 360;
-			if (min > 180) min -= 360;
+			if (angle > 180)
+				angle -= 360;
+			if (max > 180)
+				max -= 360;
+			if (min > 180)
+				min -= 360;
 		}
 		angle = Mathf.Clamp(angle, min, max);
-		if (angle < 0) angle += 360;
+		if (angle < 0)
+			angle += 360;
 		return angle;
 	}
 
@@ -75,6 +80,10 @@ public class ChangeCameraView : MonoBehaviour {
 			_targetPosition = _startPosition;
 			_gyroscopeCamera.IsCarMode = false;
 			UserRenderer.enabled = false;
+			foreach (Renderer child in UserRenderer.GetComponentsInChildren<Renderer>()) {
+				child.enabled = false;
+			}
+
 			IsCarMode = false;
 			StartCoroutine(LookAtUser());
 		} else {
@@ -82,6 +91,9 @@ public class ChangeCameraView : MonoBehaviour {
 			_targetPosition = _startPosition + UserRenderer.gameObject.transform.forward * BackOffset + UserRenderer.gameObject.transform.up * UpOffset;
 			_gyroscopeCamera.IsCarMode = true;
 			UserRenderer.enabled = true;
+			foreach (Renderer child in UserRenderer.GetComponentsInChildren<Renderer>()) {
+				child.enabled = true;
+			}
 			IsCarMode = true;
 			StartCoroutine(LookAtUser());
 		}
@@ -94,7 +106,7 @@ public class ChangeCameraView : MonoBehaviour {
 		ManualCalibration.DisableCalibration = true;
 		while ((transform.position - _targetPosition).magnitude > 0.1f) {
 			transform.position = Vector3.MoveTowards(transform.position, _targetPosition, MovementSpeed * Time.deltaTime);
-			transform.forward = Vector3.Lerp(transform.forward, UserRenderer.gameObject.transform.forward, MovementSpeed/50 * Time.deltaTime);
+			transform.forward = Vector3.Lerp(transform.forward, UserRenderer.gameObject.transform.forward, MovementSpeed / 50 * Time.deltaTime);
 			yield return new WaitForEndOfFrame();
 		}
 		transform.forward = UserRenderer.gameObject.transform.forward;
