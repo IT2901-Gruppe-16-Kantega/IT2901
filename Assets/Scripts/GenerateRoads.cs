@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
@@ -89,7 +90,7 @@ public class GenerateRoads : MonoBehaviour {
 			}
 			roadObject.name = road.parsedLocation[0] + " - " + road.parsedLocation[road.parsedLocation.Count - 1];
 
-			Mesh mesh = new Mesh();
+			Mesh mesh = new Mesh {name = roadObject.name};
 
 			// Create a mesh filter
 			MeshFilter meshFilter = roadObject.AddComponent<MeshFilter>();
@@ -100,12 +101,20 @@ public class GenerateRoads : MonoBehaviour {
 			for (int i = 0; i < normals.Length; i++)
 				normals[i] = Vector3.up;
 			mesh.normals = normals;
+			Vector2[] uvs = new Vector2[vertices.Count];
+			for (int i = 0; i < vertices.Count; i += 2) {
+				uvs[i] = new Vector2((float) i / vertices.Count, 0);
+				uvs[i + 1] = new Vector2((float) i / vertices.Count, 1);
+			}
+			mesh.uv = uvs;
 
 			meshFilter.mesh = mesh;
 
 			// Create a mesh renderer for the mesh to show
 			MeshRenderer meshRenderer = roadObject.AddComponent<MeshRenderer>();
+
 			meshRenderer.material = RoadMaterial;
+			meshRenderer.material.mainTextureScale = new Vector2(vertices.Count / 2f, 1);
 			meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 			height -= 0.001f;
 			UiScripts.RoadsInstantiated++;
