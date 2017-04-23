@@ -12,7 +12,7 @@ public class GenerateRoads : MonoBehaviour {
 	[SerializeField]
 	private ApiWrapper _apiWrapper;
 
-	[HideInInspector] 
+	[HideInInspector]
 	public static bool IsCreatingRoads = true;
 
 	private bool _useLocalData;
@@ -109,7 +109,8 @@ public class GenerateRoads : MonoBehaviour {
 			meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 			height -= 0.001f;
 			UiScripts.RoadsInstantiated++;
-			if(index % 10 == 0) yield return new WaitForEndOfFrame(); // 10 road references per frame
+			if (index % 10 == 0)
+				yield return new WaitForEndOfFrame(); // 10 road references per frame
 		}
 		IsCreatingRoads = false;
 	}

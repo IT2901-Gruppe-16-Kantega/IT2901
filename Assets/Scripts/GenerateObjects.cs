@@ -126,7 +126,8 @@ public class GenerateObjects : MonoBehaviour {
 					// Add signpost to hashmap using the signpoint id, otherwise use signplate id
 					_signPosts.Add(foreldre != null ? foreldre.vegobjekter[0] : objekt.id, newSignPost);
 					if (newSignPost) {
-						if (foreldre != null) newSignPost.name = foreldre.vegobjekter[0].ToString();
+						if (foreldre != null)
+							newSignPost.name = foreldre.vegobjekter[0].ToString();
 						newSignPost.GetComponent<SignPlateAdder>().AddPlate(objekt);
 					}
 				}
@@ -160,6 +161,7 @@ public class GenerateObjects : MonoBehaviour {
 					}
 				}
 			}
+			UiScripts.ObjectsInstantiated++;
 			if (i % 10 == 0)
 				yield return new WaitForEndOfFrame();
 		}

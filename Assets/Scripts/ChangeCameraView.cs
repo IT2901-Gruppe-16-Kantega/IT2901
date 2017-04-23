@@ -2,7 +2,7 @@
 using UnityEngine;
 
 public class ChangeCameraView : MonoBehaviour {
-	private bool _isCarMode;
+	public static bool IsCarMode;
 	private Vector3 _startPosition;
 	private Vector3 _targetPosition;
 	private const float MovementSpeed = 100;
@@ -27,7 +27,7 @@ public class ChangeCameraView : MonoBehaviour {
 
 	private void LateUpdate() {
 		UserRenderer.gameObject.transform.forward = new Vector3(transform.forward.x, 0, transform.forward.z);
-		if (!_isCarMode || ObjectSelect.IsDragging)
+		if (!IsCarMode || ObjectSelect.IsDragging)
 			return;
 		if (Input.GetMouseButtonDown(0) || (Input.touchCount > 0 && Input.touchSupported))
 			_isRotating = true;
@@ -70,19 +70,19 @@ public class ChangeCameraView : MonoBehaviour {
 	/// Changes the view from first person to third person (car mode)
 	/// </summary>
 	public void ChangeView() {
-		if (_isCarMode) {
+		if (IsCarMode) {
 			// Move main camera back into the start position
 			_targetPosition = _startPosition;
 			_gyroscopeCamera.IsCarMode = false;
 			UserRenderer.enabled = false;
-			_isCarMode = false;
+			IsCarMode = false;
 			StartCoroutine(LookAtUser());
 		} else {
 			// Move main camera back and up into third person view
 			_targetPosition = _startPosition + UserRenderer.gameObject.transform.forward * BackOffset + UserRenderer.gameObject.transform.up * UpOffset;
 			_gyroscopeCamera.IsCarMode = true;
 			UserRenderer.enabled = true;
-			_isCarMode = true;
+			IsCarMode = true;
 			StartCoroutine(LookAtUser());
 		}
 	}
