@@ -27,7 +27,7 @@ public class ReportDataHandler : MonoBehaviour {
 	/// </summary>
 	public void OpenReactNative() {
 	// TODO for ios. send report data
-		Application.OpenURL("nvdbRn:");
+		Application.OpenURL("vegar://rapport?id="+SharedData.AllData.key);
 	}
 
 	/// <summary>

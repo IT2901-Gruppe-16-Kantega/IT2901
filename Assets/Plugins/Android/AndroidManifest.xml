@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.nvdb.ar"
-	android:sharedUserId="com.nvdb"
+    package="com.vegar.ar"
+	android:sharedUserId="com.vegar"
 	android:installLocation="preferExternal"
     android:versionCode="1"
     android:versionName="1.0">
@@ -30,7 +30,7 @@
 				<action android:name="android.intent.action.VIEW" />
 				<category android:name="android.intent.category.DEFAULT" />
 				<category android:name="android.intent.category.BROWSABLE" />
-				<data android:scheme="nvdbAr" />
+				<data android:scheme="vegar.ar" />
 			</intent-filter>
 			<meta-data android:name="unityplayer.UnityActivity" android:value="true" />
 		</activity>

@@ -78,7 +78,9 @@ public class ApiWrapper : MonoBehaviour {
 			Debug.Log("WWW Ok!: " + www.text);
 
 			// Make a new RootObject and parse the json data from the request
-			NvdbObjekt data = JsonUtility.FromJson<NvdbObjekt>(www.text);
+			RoadSearchObject searchData = JsonUtility.FromJson<RoadSearchObject>(www.text);
+            NvdbObjekt data = searchData.roadObjects;
+            SharedData.AllData = searchData;
 
 			// Go through each Objekter in the data.objekter (the road objects)
 			foreach (Objekter obj in data.objekter) {

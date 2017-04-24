@@ -65,7 +65,7 @@ public class UiScripts : MonoBehaviour {
 	}
 
 	public void OpenReactNative() {
-		Application.OpenURL("com.nvdb.rn://rapport?id=<roadSearch.id>");
+		Application.OpenURL("vegar:");
 	}
 
 	public void ShowInfo() {
@@ -76,7 +76,7 @@ public class UiScripts : MonoBehaviour {
     public void GenerateReport() {
 		// Add all signplates that has been moved or is wrong
 		List<Objekter> movedSignsList = (from Transform signPost in Signs.transform from Transform signPlate in signPost.transform select signPlate.GetComponent<RoadObjectManager>() into rom where rom.HasBeenMoved || rom.SomethingIsWrong select rom.Objekt).ToList();
-	    /* // NON LINQ CODE
+        /* // NON LINQ CODE
 		 * List<Objekter> movedSignsList = new List<Objekter>();
 		 * foreach (Transform signPost in Signs.transform) {
 		 *   foreach (Transform signPlate in signPost.transform) {
@@ -85,6 +85,9 @@ public class UiScripts : MonoBehaviour {
 		 *   }
 		 * }
 		 */
+        RoadSearchObject roadSearchObject = SharedData.AllData;
+        roadSearchObject.report.objekter = movedSignsList;
+
 		SharedData.Data.AddRange(movedSignsList);
 		StatusText.text = LocalStorage.CreateReport("report.json", movedSignsList) ? "Report Saved Successfully" : "Report Failed To Save";
 		StartCoroutine(AnimateStatus());

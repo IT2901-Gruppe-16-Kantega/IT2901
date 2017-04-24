@@ -162,3 +162,14 @@ public class NvdbObjekt {
 	public List<Objekter> objekter;
 // TODO create a metadata to say where it is from and who made the change?
 }
+
+
+[Serializable]
+public class RoadSearchObject
+{
+    public int key;
+    public DateTime date;
+    public String description;
+    public NvdbObjekt roadObjects;
+    public NvdbObjekt report;
+}

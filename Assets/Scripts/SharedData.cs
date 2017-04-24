@@ -3,4 +3,5 @@ using UnityEngine;
 
 public class SharedData : MonoBehaviour {
 	public static List<Objekter> Data = new List<Objekter>();
+    public static RoadSearchObject AllData = new RoadSearchObject();
 }

@@ -83,7 +83,9 @@ public class GenerateObjects : MonoBehaviour {
 				// TODO Do something if data loaded is not there. Query the user maybe?
 			}
 			// Parse the local data
-			NvdbObjekt data = JsonUtility.FromJson<NvdbObjekt>(localData);
+			RoadSearchObject searchData = JsonUtility.FromJson<RoadSearchObject>(localData);
+            SharedData.AllData = searchData;
+            NvdbObjekt data = searchData.roadObjects;
 			UiScripts.ObjectsToInstantiate = data.objekter.Count;
 			// Go through each Objekter in the data.objekter (the road objects)
 			foreach (Objekter obj in data.objekter) {
