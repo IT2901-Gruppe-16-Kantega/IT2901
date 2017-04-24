@@ -39,6 +39,8 @@ public class GenerateObjects : MonoBehaviour {
 
 	private bool _useLocalData; // true if RN data is NOT used (fetch objects from this app)
 
+	public static bool LineObjects;
+
 	private void Start() {
 		_apiWrapper = GetComponent<ApiWrapper>();
 		_roadGenerator = GetComponent<GenerateRoads>();
@@ -83,9 +85,10 @@ public class GenerateObjects : MonoBehaviour {
 				// TODO Do something if data loaded is not there. Query the user maybe?
 			}
 			// Parse the local data
-			RoadSearchObject searchData = JsonUtility.FromJson<RoadSearchObject>(localData);
+			/*RoadSearchObject searchData = JsonUtility.FromJson<RoadSearchObject>(localData);
             SharedData.AllData = searchData;
-            NvdbObjekt data = searchData.roadObjects;
+            NvdbObjekt data = searchData.roadObjects;*/
+			NvdbObjekt data = JsonUtility.FromJson<NvdbObjekt>(localData);
 			UiScripts.ObjectsToInstantiate = data.objekter.Count;
 			// Go through each Objekter in the data.objekter (the road objects)
 			foreach (Objekter obj in data.objekter) {
@@ -155,10 +158,11 @@ public class GenerateObjects : MonoBehaviour {
 						GpsManager.GpsLocation location = objekt.parsedLocation[index];
 						coordinates[index] = HelperFunctions.GetPositionFromCoords(location);
 					}
-
 					if (coordinates.Length == 0)
 						continue;
-					GameObject lineObject = Instantiate(LineObject, Vector3.zero, Quaternion.identity, SignsParent.transform) as GameObject;
+					//Debug.Log(objekt.parsedLocation[0] + " - " + coordinates[0]);
+					LineObjects = true;
+					GameObject lineObject = Instantiate(LineObject, coordinates[0], Quaternion.identity, SignsParent.transform) as GameObject;
 					if (lineObject != null) {
 						LineRenderer lineRenderer = lineObject.GetComponent<LineRenderer>();
 						lineRenderer.SetVertexCount(coordinates.Length);

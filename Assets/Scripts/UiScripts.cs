@@ -34,8 +34,7 @@ public class UiScripts : MonoBehaviour {
     private readonly Vector2 _infoBgMaxSize = new Vector2(320, 300);
 	private readonly Vector2 _infoTextMaxSize = new Vector2(300, 280);
 
-    private bool _isObjectMarked;
-    // TODO object marked
+	// TODO object marked
 
     private const float AnimationDampening = 0.4f;
 

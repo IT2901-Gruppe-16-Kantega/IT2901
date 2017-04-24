@@ -16,7 +16,7 @@ public class GpsManager : MonoBehaviour {
 
 	// Our default latitude, longitude, and altitude
 	// Default is somewhere in the middle of Trondheim
-	public static GpsLocation MyLocation = new GpsLocation(63.430626, 10.392145, 10);
+	public static GpsLocation MyLocation = new GpsLocation(63.435859, 10.416847, 10);
 	private GpsLocation _oldLocation;
 
 	[HideInInspector]
