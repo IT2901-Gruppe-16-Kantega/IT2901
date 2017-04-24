@@ -138,10 +138,13 @@ public class GenerateObjects : MonoBehaviour {
 					GameObject newDefaultGameObject = Instantiate(DefaultObject, HelperFunctions.GetPositionFromCoords(objekt.parsedLocation[0]), Quaternion.identity, SignsParent.transform) as GameObject;
 					if (newDefaultGameObject != null) {
 						RoadObjectManager rom = newDefaultGameObject.GetComponent<RoadObjectManager>();
+						rom.IsDefault = true;
+						rom.OriginPoint = HelperFunctions.GetPositionFromCoords(objekt.parsedLocation[0]);
 						rom.RoadObjectLocation = objekt.parsedLocation[0];
 						rom.Objekt = objekt;
 						rom.UpdateLocation();
 						rom.SignText.text = objekt.metadata.type.navn;
+						rom.UnSelected();
 					}
 				} else {
 					// if it has more (or zero)

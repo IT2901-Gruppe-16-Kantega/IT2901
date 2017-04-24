@@ -65,7 +65,7 @@ public class UiScripts : MonoBehaviour {
 	}
 
 	public void OpenReactNative() {
-		Application.OpenURL("nvdbRn:");
+		Application.OpenURL("com.nvdb.rn://rapport?id=<roadSearch.id>");
 	}
 
 	public void ShowInfo() {

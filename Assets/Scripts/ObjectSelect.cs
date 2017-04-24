@@ -43,7 +43,7 @@ public class ObjectSelect : MonoBehaviour {
 			IsDragging = false;
 		}
 
-		if (!IsDragging || _targetPlate == null || _targetPole == null)
+		if (!IsDragging || _targetPlate == null)
 			return; // To reduce nesting
 
 		// Deactivate gyro
@@ -51,10 +51,11 @@ public class ObjectSelect : MonoBehaviour {
 		RoadObjectManager rom = _targetPlate.GetComponent<RoadObjectManager>();
 		if (_targetPlate != null) {
 			rom.HasBeenMoved = Math.Abs(rom.DeltaDistance) > 0;
+			Egenskaper signNumber = rom.Objekt.egenskaper.Find(egenskap => egenskap.id == 5530);
 			ObjectText.text =
 				"id: " + rom.Objekt.id + "\n" +
 				"egengeo: " + rom.Objekt.geometri.egengeometri + "\n" +
-				"Skiltnummer: " + rom.Objekt.egenskaper.Find(egenskap => egenskap.id == 5530).verdi + "\n" +
+				((signNumber == null) ? "" : "skiltnummer: " + signNumber.verdi + "\n") +
 				"manuelt flyttet: " + rom.HasBeenMoved + "\n" +
 				"markert som feil: " + rom.SomethingIsWrong + "\n" +
 				"avstand flyttet: " + string.Format("{0:F2}m", rom.DeltaDistance) + "\n" +
@@ -81,7 +82,11 @@ public class ObjectSelect : MonoBehaviour {
 
 		_startingPoint = Input.mousePosition;
 		if (!rom.Objekt.geometri.egengeometri) { // Only move if the object does not have egengeometri
-			_targetPole.transform.Translate(xDir, 0, yDir);
+			if (_targetPole != null) {
+				_targetPole.transform.Translate(xDir, 0, yDir);
+			} else {
+				_targetPlate.transform.Translate(xDir, 0, yDir);
+			}
 		}
 		_startingPoint = Input.mousePosition;
 	}
@@ -134,7 +139,6 @@ public class ObjectSelect : MonoBehaviour {
 		if (newTarget != _targetPlate && _targetPlate != null) {
 			_targetPlate.GetComponent<RoadObjectManager>().UnSelected();
 		}
-
 		if (newTarget == null)
 			ObjectText.text = "Ingenting valgt";
 		return newTarget;
@@ -164,7 +168,7 @@ public class ObjectSelect : MonoBehaviour {
 
 	// For Marking objects with wrong egengeo
 	public void MarkTarget() {
-		if (_targetPlate == null || _targetPole == null) 
+		if (_targetPlate == null)
 			return;
 		RoadObjectManager rom = _targetPlate.GetComponent<RoadObjectManager>();
 		if (rom.SomethingIsWrong) {
@@ -175,7 +179,8 @@ public class ObjectSelect : MonoBehaviour {
 			MarkerOff.SetActive(true);
 		}
 		rom.SomethingIsWrong = !rom.SomethingIsWrong;
-		_targetPole.GetComponent<SignPlateAdder>().MarkPlates(rom.SomethingIsWrong);
+		if (_targetPlate != null)
+			_targetPole.GetComponent<SignPlateAdder>().MarkPlates(rom.SomethingIsWrong);
 		rom.Objekt.metadata.notat = rom.SomethingIsWrong ? "Markert som feil av bruker (arvet fra skiltpunkt)" : "";
 		ObjectText.text =
 				"id: " + rom.Objekt.id + "\n" +
