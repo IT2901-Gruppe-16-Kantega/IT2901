@@ -21,13 +21,20 @@ public class ObjectSelect : MonoBehaviour {
 	private Vector3 _startingPoint;
 	private bool _isOverInfoBox;
 
-	private void Start() {
+    private int _mouseClicks = 0;
+    private float _mouseTimer = 0f;
+    private float _mouseTimerLimit = .4f;
+
+    private void Start() {
 		_layers = LayerMask.GetMask("Signs");
 		_eventSystem = EventSystem.current;
 	}
 
 	private void Update() {
-		if (Input.GetMouseButtonDown(0)) {
+        // Dobbel click detection
+        int mouseClicks = CheckMouseDoubleClick();
+
+        if (Input.GetMouseButtonDown(0)) {
 			if (_eventSystem.currentSelectedGameObject == null && !_isOverInfoBox) {
 				_targetPlate = ReturnClickedObject();
 				if (_targetPlate != null) {
@@ -89,7 +96,14 @@ public class ObjectSelect : MonoBehaviour {
 			}
 		}
 		_startingPoint = Input.mousePosition;
-	}
+
+        if (mouseClicks == 2)
+        {
+            Camera.main.transform.LookAt(_targetPlate.transform.position);
+            //Camera.main.fieldOfView = Math.Atan((height/2)/distance)
+        }
+
+    }
 
 	/// <summary>
 	/// Checks the device orientation and changes the x and y Translate values
@@ -191,4 +205,26 @@ public class ObjectSelect : MonoBehaviour {
 				"Avstand flyttet: " + string.Format("{0:F2}m", rom.DeltaDistance) + "\n" +
 				"Retning flyttet [N]: " + string.Format("{0:F2} grader", rom.DeltaBearing);
 	}
+    private int CheckMouseDoubleClick()
+    {
+        if (Input.GetMouseButtonDown(0) && GUIUtility.hotControl == 0) _mouseClicks++;
+        if (_mouseClicks >= 1 && _mouseClicks < 3)
+        {
+            _mouseTimer += Time.fixedDeltaTime;
+
+            if (_mouseClicks == 2)
+            {
+                _mouseTimer = 0;
+                _mouseClicks = 0;
+                return (_mouseTimer - _mouseTimerLimit < 0) ? 2 : 1;
+            }
+            if (_mouseTimer > _mouseTimerLimit)
+            {
+                _mouseClicks = 0;
+                _mouseTimer = 0;
+                return 1;
+            }
+        }
+        return 0;
+    }
 }
