@@ -88,7 +88,7 @@ public class UiScripts : MonoBehaviour {
         roadSearchObject.report.objekter = movedSignsList;
 
 		SharedData.Data.AddRange(movedSignsList);
-		StatusText.text = LocalStorage.CreateReport("report.json", movedSignsList) ? "Report Saved Successfully" : "Report Failed To Save";
+		StatusText.text = LocalStorage.CreateReport("report.json", movedSignsList) ? "Raport lagret" : "Raport feilet";
 		StartCoroutine(AnimateStatus());
 		SceneManager.LoadScene("Report Scene");
 	}

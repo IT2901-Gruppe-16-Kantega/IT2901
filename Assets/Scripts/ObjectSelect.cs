@@ -53,13 +53,13 @@ public class ObjectSelect : MonoBehaviour {
 			rom.HasBeenMoved = Math.Abs(rom.DeltaDistance) > 0;
 			Egenskaper signNumber = rom.Objekt.egenskaper.Find(egenskap => egenskap.id == 5530);
 			ObjectText.text =
-				"id: " + rom.Objekt.id + "\n" +
-				"egengeo: " + rom.Objekt.geometri.egengeometri + "\n" +
-				((signNumber == null) ? "" : "skiltnummer: " + signNumber.verdi + "\n") +
-				"manuelt flyttet: " + rom.HasBeenMoved + "\n" +
-				"markert som feil: " + rom.SomethingIsWrong + "\n" +
-				"avstand flyttet: " + string.Format("{0:F2}m", rom.DeltaDistance) + "\n" +
-				"retning flyttet [N]: " + string.Format("{0:F2} grader", rom.DeltaBearing);
+				"ID: " + rom.Objekt.id + "\n" +
+				"Egengeometri: " + rom.Objekt.geometri.egengeometri + "\n" +
+				((signNumber == null) ? "" : "Skiltnummer: " + signNumber.verdi + "\n") +
+				"Manuelt flyttet: " + rom.HasBeenMoved + "\n" +
+				"Markert som feil: " + rom.SomethingIsWrong + "\n" +
+				"Avstand flyttet: " + string.Format("{0:F2}m", rom.DeltaDistance) + "\n" +
+				"Retning flyttet [N]: " + string.Format("{0:F2} grader", rom.DeltaBearing);
 
 			// Handling for Marking Objects
 			if (!rom.SomethingIsWrong) {
@@ -183,12 +183,12 @@ public class ObjectSelect : MonoBehaviour {
 			_targetPole.GetComponent<SignPlateAdder>().MarkPlates(rom.SomethingIsWrong);
 		rom.Objekt.metadata.notat = rom.SomethingIsWrong ? "Markert som feil av bruker (arvet fra skiltpunkt)" : "";
 		ObjectText.text =
-				"id: " + rom.Objekt.id + "\n" +
-				"egengeo: " + rom.Objekt.geometri.egengeometri + "\n" +
+				"ID: " + rom.Objekt.id + "\n" +
+				"Egengeometri: " + rom.Objekt.geometri.egengeometri + "\n" +
 				"Skiltnummer: " + rom.Objekt.egenskaper.Find(egenskap => egenskap.id == 5530).verdi + "\n" +
-				"manuelt flyttet: " + rom.HasBeenMoved + "\n" +
-				"markert som feil: " + rom.SomethingIsWrong + "\n" +
-				"avstand flyttet: " + string.Format("{0:F2}m", rom.DeltaDistance) + "\n" +
-				"retning flyttet [N]: " + string.Format("{0:F2} grader", rom.DeltaBearing);
+				"Manuelt flyttet: " + rom.HasBeenMoved + "\n" +
+				"Markert som feil: " + rom.SomethingIsWrong + "\n" +
+				"Avstand flyttet: " + string.Format("{0:F2}m", rom.DeltaDistance) + "\n" +
+				"Retning flyttet [N]: " + string.Format("{0:F2} grader", rom.DeltaBearing);
 	}
 }
