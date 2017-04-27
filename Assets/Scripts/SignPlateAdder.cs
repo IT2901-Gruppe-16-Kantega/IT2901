@@ -55,6 +55,7 @@ public class SignPlateAdder : MonoBehaviour {
 		}
 		Vector3 position = HelperFunctions.GetPositionFromCoords(objekt.parsedLocation[0]);
 		signPlate.transform.position = position;
+		signPlate.transform.rotation = Quaternion.identity;
 		rom.OriginPoint = position;
 		signPlate.transform.Translate(0, 2 + SignPlateCount, 0);
 		SignPlateCount++;

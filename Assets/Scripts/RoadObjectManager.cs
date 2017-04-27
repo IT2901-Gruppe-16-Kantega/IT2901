@@ -34,17 +34,17 @@ public class RoadObjectManager : MonoBehaviour {
 	public Renderer DefaultRenderer;
 	public bool IsDefault;
 
-	private void Update() {
-		if (!IsDefault) 
-			return;
-		if (Vector3.Angle(
-			Camera.main.transform.forward, new Vector3(Camera.main.transform.position.x - transform.position.x, 0, Camera.main.transform.position.z - transform.position.z)) < 90f)
-			return;
-		transform.LookAt(new Vector3(Camera.main.transform.position.x,
-									0,
-									Camera.main.transform.position.z));
-		UpdateLocation();
-	}
+	//private void Update() {
+	//	if (!IsDefault) 
+	//		return;
+	//	if (Vector3.Angle(
+	//		Camera.main.transform.forward, new Vector3(Camera.main.transform.position.x - transform.position.x, 0, Camera.main.transform.position.z - transform.position.z)) < 90f)
+	//		return;
+	//	transform.LookAt(new Vector3(Camera.main.transform.position.x,
+	//								0,
+	//								Camera.main.transform.position.z));
+	//	UpdateLocation();
+	//}
 
 	public void UpdateLocation() {
 		Distance = new Vector3(transform.position.x, 0, transform.position.z).magnitude;
