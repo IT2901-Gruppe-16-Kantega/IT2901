@@ -163,13 +163,40 @@ public class NvdbObjekt {
 // TODO create a metadata to say where it is from and who made the change?
 }
 
+[Serializable]
+public class RoadSearchObject {
+    public long key;
+    public string date;
+    public string description;
+    public List<Objekter> roadObjects;
+    public List<Objekter> report;
+}
 
 [Serializable]
-public class RoadSearchObject
-{
-    public int key;
-    public DateTime date;
-    public String description;
-    public NvdbObjekt roadObjects;
-    public NvdbObjekt report;
+public class Report {
+	public List<ReportObject> reportObjects;
+}
+
+[Serializable]
+public class ReportObject {
+	public int vegobjekt;
+	public List<ReportEgenskap> endringer;
+}
+
+[Serializable]
+public class ReportEgenskap {
+	public ReportEgenskap2 egenskap;
+	public string dato;
+	public string type;
+	public string beskrivelse;
+
+}
+
+[Serializable]
+public class ReportEgenskap2 {
+	public int id;
+	public string navn;
+	public int datatype;
+	public string datatype_tekst;
+	public string verdi;
 }

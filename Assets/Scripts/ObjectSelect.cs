@@ -216,7 +216,7 @@ public class ObjectSelect : MonoBehaviour {
 		rom.SomethingIsWrong = !rom.SomethingIsWrong;
 		if (_targetPlate != null)
 			_targetPole.GetComponent<SignPlateAdder>().MarkPlates(rom.SomethingIsWrong);
-		rom.Objekt.metadata.notat = rom.SomethingIsWrong ? "Markert som feil av bruker (arvet fra skiltpunkt)" : "";
+		
 		ObjectText.text =
 				"ID: " + rom.Objekt.id + "\n" +
 				"Egengeometri: " + rom.Objekt.geometri.egengeometri + "\n" +

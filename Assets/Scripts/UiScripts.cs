@@ -56,15 +56,15 @@ public class UiScripts : MonoBehaviour {
 		RoadsInstantiated = 0;
 
 		while (GenerateObjects.IsCreatingSigns || GenerateRoads.IsCreatingRoads) {
-			_loadObjectText.text = (GenerateObjects.IsCreatingSigns) ? string.Format("Loading Objects... {0} of {1}", ObjectsInstantiated, ObjectsToInstantiate) : "Done loading objects";
-			_loadRoadText.text = (GenerateObjects.IsCreatingSigns) ? string.Format("Loading Roads... {0} of {1}", RoadsInstantiated, RoadsToInstantiate) : "Done loading roads";
+			_loadObjectText.text = GenerateObjects.IsCreatingSigns ? string.Format("Laster inn vegobjekter: {0} av {1} ({2}%)", ObjectsInstantiated, ObjectsToInstantiate, ObjectsToInstantiate > 0 ? ObjectsInstantiated / ObjectsToInstantiate * 100 : 0) : "Lastet inn alle vegobjekter";
+			_loadRoadText.text = GenerateObjects.IsCreatingSigns ? string.Format("Laster inn veger: {0} av {1} ({2}%)", RoadsInstantiated, RoadsToInstantiate, ObjectsToInstantiate > 0 ? RoadsInstantiated / RoadsToInstantiate * 100 : 0) : "Lastet inn alle veger";
 			yield return null;
 		}
 		_loadingPanel.SetActive(false);
 	}
 
 	public void OpenReactNative() {
-		Application.OpenURL("vegar:");
+		Application.OpenURL("vegar.kart:");
 	}
 
 	public void ShowInfo() {
@@ -74,23 +74,28 @@ public class UiScripts : MonoBehaviour {
 
     public void GenerateReport() {
 		// Add all signplates that has been moved or is wrong
-		List<Objekter> movedSignsList = (from Transform signPost in Signs.transform from Transform signPlate in signPost.transform select signPlate.GetComponent<RoadObjectManager>() into rom where rom.HasBeenMoved || rom.SomethingIsWrong select rom.Objekt).ToList();
-        /* // NON LINQ CODE
-		 * List<Objekter> movedSignsList = new List<Objekter>();
-		 * foreach (Transform signPost in Signs.transform) {
-		 *   foreach (Transform signPlate in signPost.transform) {
-		 *     RoadObjectManager rom = signPlate.GetComponent<RoadObjectManager>();
-		 *     if(rom.HasBeenMoved || rom.SomethingIsWrong) movedSignsList.Add(rom.Objekt);
-		 *   }
-		 * }
+		List<Objekter> movedSignsList = (from Transform signPost in Signs.transform from Transform signPlate in signPost.transform select signPlate.GetComponent<RoadObjectManager>() into rom where rom && (rom.HasBeenMoved || rom.SomethingIsWrong) select rom.Objekt).ToList();
+		/* // NON LINQ CODE
+		 List<Objekter> movedSignsList = new List<Objekter>();
+		 foreach (Transform signPost in Signs.transform) {
+		   foreach (Transform signPlate in signPost.transform) {
+		     RoadObjectManager rom = signPlate.GetComponent<RoadObjectManager>();
+		     if(rom && (rom.HasBeenMoved || rom.SomethingIsWrong)) movedSignsList.Add(rom.Objekt);
+		   }
+		 }
 		 */
-        RoadSearchObject roadSearchObject = SharedData.AllData;
-        roadSearchObject.report.objekter = movedSignsList;
+	    SharedData.AllData.report = movedSignsList;
 
 		SharedData.Data.AddRange(movedSignsList);
-		StatusText.text = LocalStorage.CreateReport("report.json", movedSignsList) ? "Raport lagret" : "Raport feilet";
-		StartCoroutine(AnimateStatus());
-		SceneManager.LoadScene("Report Scene");
+	    if (LocalStorage.CreateReport("report.json", movedSignsList)) {
+		    StatusText.text = "Raport lagret";
+		    StartCoroutine(AnimateStatus());
+		    SceneManager.LoadScene("Report Scene");
+	    }
+	    else {
+		    StatusText.text = "Raport feilet";
+		    StartCoroutine(AnimateStatus());
+	    }
 	}
 
 	public void ShowMenu() {

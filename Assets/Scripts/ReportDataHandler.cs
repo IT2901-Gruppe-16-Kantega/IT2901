@@ -12,6 +12,7 @@ public class ReportDataHandler : MonoBehaviour {
 	private GameObject _objekt;
 	
 	private void Start() {
+		Debug.Log(SharedData.AllData.key);
 		StartCoroutine(ShowReport());
 	}
 
@@ -26,8 +27,7 @@ public class ReportDataHandler : MonoBehaviour {
 	/// Open React Native scene
 	/// </summary>
 	public void OpenReactNative() {
-	// TODO for ios. send report data
-		Application.OpenURL("vegar://rapport?id="+SharedData.AllData.key);
+		Application.OpenURL("vegar.kart://rapport?id="+SharedData.AllData.key);
 	}
 
 	/// <summary>

@@ -84,11 +84,11 @@ public class GenerateObjects : MonoBehaviour {
 			if (string.IsNullOrEmpty(localData)) {
 				// TODO Do something if data loaded is not there. Query the user maybe?
 			}
+			Debug.Log(localData);
 			// Parse the local data
-			/*RoadSearchObject searchData = JsonUtility.FromJson<RoadSearchObject>(localData);
+			RoadSearchObject searchData = JsonUtility.FromJson<RoadSearchObject>(localData);
             SharedData.AllData = searchData;
-            NvdbObjekt data = searchData.roadObjects;*/
-			NvdbObjekt data = JsonUtility.FromJson<NvdbObjekt>(localData);
+			NvdbObjekt data = new NvdbObjekt {objekter = searchData.roadObjects};
 			UiScripts.ObjectsToInstantiate = data.objekter.Count;
 			// Go through each Objekter in the data.objekter (the road objects)
 			foreach (Objekter obj in data.objekter) {

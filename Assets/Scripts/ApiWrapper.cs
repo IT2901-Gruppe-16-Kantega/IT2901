@@ -45,7 +45,7 @@ public class ApiWrapper : MonoBehaviour {
 		WWW www = CreateFetchRequest(id, location.Latitude, location.Longitude);
 
 		// Start a coroutine that tries to get the data from the API
-		StartCoroutine(WaitForRequest(www, objects => {
+		StartCoroutine(WaitForRequest(www, id == 532, objects => {
 			callback(objects);
 			if (!string.IsNullOrEmpty(www.error))
 				return;
@@ -64,7 +64,7 @@ public class ApiWrapper : MonoBehaviour {
 	// The coroutine that gets the data from the API
 	// Parameters:
 	//      WWW www -> The request URL with the correct headers
-	private IEnumerator WaitForRequest(WWW www, Action<List<Objekter>> callback) {
+	private IEnumerator WaitForRequest(WWW www, bool isRoads, Action<List<Objekter>> callback) {
 		// Request data from the API and come back when it's done
 		yield return www;
 
@@ -79,14 +79,17 @@ public class ApiWrapper : MonoBehaviour {
 
 			// Make a new RootObject and parse the json data from the request
 			NvdbObjekt data = JsonUtility.FromJson<NvdbObjekt>(www.text);
-			RoadSearchObject searchData = new RoadSearchObject {roadObjects = data};
-            SharedData.AllData = searchData;
+			if (!isRoads) {
+				RoadSearchObject searchData = new RoadSearchObject { roadObjects = data.objekter };
+				SharedData.AllData = searchData;
+			}
 
 			// Go through each Objekter in the data.objekter (the road objects)
 			foreach (Objekter obj in data.objekter) {
 				// Add the location to our roadObjectList
 				Objekter objekt = ParseObject(obj);
-				if (objekt == null) continue;
+				if (objekt == null)
+					continue;
 				roadObjectList.Add(objekt);
 			}
 			callback(roadObjectList);
@@ -104,7 +107,7 @@ public class ApiWrapper : MonoBehaviour {
 		}
 		// Make a substring of the contents between the parenthesis
 		wkt = wkt.Substring(wkt.IndexOf("(", StringComparison.Ordinal) + 1).Trim(')');
-		if(wkt[0]=='(')
+		if (wkt[0] == '(')
 			wkt = wkt.Substring(wkt.IndexOf("(", StringComparison.Ordinal) + 1).Trim(')');
 
 		// Each triplets of coordinates have a comma in between

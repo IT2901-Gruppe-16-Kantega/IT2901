@@ -69,6 +69,7 @@ public class SignPlateAdder : MonoBehaviour {
 		foreach (GameObject signPlate in _children) {
 			RoadObjectManager rom = signPlate.GetComponent<RoadObjectManager>();
 			rom.SomethingIsWrong = value;
+			rom.Objekt.metadata.notat = rom.SomethingIsWrong ? "Markert som feil av bruker (arvet fra skiltpunkt)" : "";
 		}
 	}
 

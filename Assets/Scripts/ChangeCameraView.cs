@@ -19,6 +19,7 @@ public class ChangeCameraView : MonoBehaviour {
 	private Camera _mainCamera;
 
 	private void Start() {
+		IsCarMode = false;
 		_mainCamera = Camera.main;
 		_gyroscopeCamera = GetComponent<GyroscopeCamera>();
 		_startPosition = gameObject.transform.position;
