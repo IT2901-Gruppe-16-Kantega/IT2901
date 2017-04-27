@@ -57,7 +57,7 @@ public class UiScripts : MonoBehaviour {
 
 		while (GenerateObjects.IsCreatingSigns || GenerateRoads.IsCreatingRoads) {
 			_loadObjectText.text = GenerateObjects.IsCreatingSigns ? string.Format("Laster inn vegobjekter: {0} av {1} ({2}%)", ObjectsInstantiated, ObjectsToInstantiate, ObjectsToInstantiate > 0 ? ObjectsInstantiated / ObjectsToInstantiate * 100 : 0) : "Lastet inn alle vegobjekter";
-			_loadRoadText.text = GenerateObjects.IsCreatingSigns ? string.Format("Laster inn veger: {0} av {1} ({2}%)", RoadsInstantiated, RoadsToInstantiate, ObjectsToInstantiate > 0 ? RoadsInstantiated / RoadsToInstantiate * 100 : 0) : "Lastet inn alle veger";
+			_loadRoadText.text = GenerateObjects.IsCreatingSigns ? string.Format("Laster inn veger: {0} av {1} ({2}%)", RoadsInstantiated, RoadsToInstantiate, RoadsToInstantiate > 0 ? RoadsInstantiated / RoadsToInstantiate * 100 : 0) : "Lastet inn alle veger";
 			yield return null;
 		}
 		_loadingPanel.SetActive(false);

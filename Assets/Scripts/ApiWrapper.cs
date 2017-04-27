@@ -56,7 +56,7 @@ public class ApiWrapper : MonoBehaviour {
 				Debug.Log(LocalStorage.SaveData("roads.json", www.text) ? "FILE SAVED" : "The file failed to save.");
 			} else {
 				// Try to save the data
-				Debug.Log(LocalStorage.SaveData("data.json", www.text) ? "FILE SAVED" : "The file failed to save.");
+				Debug.Log(LocalStorage.SaveData("localRoadObjects.json", www.text) ? "FILE SAVED" : "The file failed to save.");
 			}
 		}));
 	}
