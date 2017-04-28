@@ -53,7 +53,7 @@ public class GyroscopeCamera : MonoBehaviour {
 
 	private void Update() {
 		// Can't do anything if we don't have a gyro.
-		if (!_gyroIsSupported || Calibrating || IsCarMode || ObjectSelect.IsDragging) {
+		if (!_gyroIsSupported || Calibrating || IsCarMode || ObjectSelect.IsDragging || ObjectSelect.IsZoomed) {
 			return;
 		}
 		Vector3 gyroTemp = _gyro.attitude.eulerAngles;

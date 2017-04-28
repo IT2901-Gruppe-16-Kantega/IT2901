@@ -24,7 +24,7 @@ public class ObjectSelect : MonoBehaviour {
     private int _mouseClicks = 0;
     private float _mouseTimer = 0f;
     private float _mouseTimerLimit = .4f;
-    private bool _isZoomed;
+    public static bool IsZoomed;
     private Vector3 _lastPosition;
     private Quaternion _lastRotation;
     private float _lastFOV;
@@ -103,7 +103,7 @@ public class ObjectSelect : MonoBehaviour {
 
         if (mouseClicks == 2)
         {
-            if (_isZoomed)
+            if (IsZoomed)
             {
                 Camera.main.transform.position = _lastPosition;
                 Camera.main.transform.rotation = _lastRotation;
@@ -114,13 +114,14 @@ public class ObjectSelect : MonoBehaviour {
                 _lastPosition = Camera.main.transform.position;
                 _lastRotation = Camera.main.transform.rotation;
                 _lastFOV = Camera.main.fieldOfView;
+                
                 Camera.main.transform.LookAt(_targetPlate.transform.position);
                 float distance = new Vector3(Camera.main.transform.position.x - _targetPlate.transform.position.x, 0, Camera.main.transform.position.z - _targetPlate.transform.position.z).magnitude;
                 // Magic number
                 Camera.main.fieldOfView = 2f * Mathf.Atan((float)((5.2f / distance))) * Mathf.Rad2Deg;
                 Camera.main.fieldOfView = Mathf.Clamp(Camera.main.fieldOfView, 1f, 90f);
             }
-            _isZoomed = !_isZoomed;
+            IsZoomed = !IsZoomed;
 
         }
 
