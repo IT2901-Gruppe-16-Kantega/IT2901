@@ -23,7 +23,7 @@ public class ObjectSelect : MonoBehaviour {
 
     private int _mouseClicks = 0;
     private float _mouseTimer = 0f;
-    private float _mouseTimerLimit = .4f;
+    private float _mouseTimerLimit = .6f;
     public static bool IsZoomed;
     private Vector3 _lastPosition;
     private Quaternion _lastRotation;

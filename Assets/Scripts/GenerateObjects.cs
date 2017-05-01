@@ -62,12 +62,6 @@ public class GenerateObjects : MonoBehaviour {
 		_roadGenerator.FetchRoad();
 	}
 
-	public Text DebugText; // TODO remove when done. Is only for debugging
-
-	private void Update() {
-		DebugText.text = 1 / Time.deltaTime + "";
-	}
-
 	/// <summary>
 	/// Gets the objects either from the database or locally and instantiates the objects
 	/// </summary>

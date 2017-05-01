@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
 /*
 Handles the GPS on the phone
@@ -16,7 +17,7 @@ public class GpsManager : MonoBehaviour {
 
 	// Our default latitude, longitude, and altitude
 	// Default is somewhere in the middle of Trondheim
-	public static GpsLocation MyLocation = new GpsLocation(63.435859, 10.416847, 10);
+	public static GpsLocation MyLocation = new GpsLocation(63.435859, 10.416847, 10); // precision of ~11.1cm
 	private GpsLocation _oldLocation;
 
 	[HideInInspector]
@@ -27,8 +28,11 @@ public class GpsManager : MonoBehaviour {
 	private bool _gpsSet;
 	private const float GpsAccuracy = 2f; // Accuracy in meters
 	private const float GpsUpdateInterval = 2f; // How many meters before it updates
+    private Vector3 _newPosition;
 
-	private void Start() {
+    public Text DebugText; // TODO remove when done. Is only for debugging
+
+    private void Start() {
 		// Set the service variable to the phones location manager (Input.location)
 		_service = Input.location;
 		// If the gps service is not enabled by the user
@@ -45,23 +49,26 @@ public class GpsManager : MonoBehaviour {
 		}
 	}
 
-	private void Update() {
-		if (!_gpsSet || !_service.isEnabledByUser)
-			return;
-		_oldLocation = MyLocation;
-		MyLocation.Latitude = _service.lastData.latitude;
-		MyLocation.Longitude = _service.lastData.longitude;
-		MyLocation.Altitude = _service.lastData.altitude;
-		if (!InitialPositionUpdated) {
-			_oldLocation = MyLocation;
-			InitialPositionUpdated = true;
-		}
-		double distance = HelperFunctions.Haversine(_oldLocation, MyLocation);
-		double bearing = HelperFunctions.CalculateBearing(_oldLocation, MyLocation);
-		transform.position = Vector3.MoveTowards(transform.position, new Vector3((float) (-System.Math.Cos(bearing) * distance), 0, (float) (System.Math.Sin(bearing) * distance)), MoveSpeed * Time.deltaTime);
-	}
+    private void Update() {
+        transform.position = Vector3.MoveTowards(transform.position, _newPosition, MoveSpeed * Time.deltaTime);
+    }
 
-	private void OnDestroy() {
+    private void UpdateLocation() {
+        if (!_gpsSet || !_service.isEnabledByUser) return;
+        if (!((_newPosition - transform.position).magnitude < 0.1f)) return;
+        MyLocation.Latitude = _service.lastData.latitude; MyLocation.Longitude = _service.lastData.longitude; MyLocation.Altitude = _service.lastData.altitude;
+        if (!InitialPositionUpdated){
+            _oldLocation = MyLocation;
+            InitialPositionUpdated = true;
+        }
+        double distance = HelperFunctions.Haversine(_oldLocation, MyLocation);
+        double bearing = HelperFunctions.CalculateBearing(_oldLocation, MyLocation);
+        _newPosition = new Vector3((float)(-System.Math.Cos(bearing) * distance), 0, 
+            (float)(System.Math.Sin(bearing) * distance)) + transform.position;
+        _oldLocation = MyLocation;
+    }
+
+    private void OnDestroy() {
 		// Stop the location service when this gameobject is destroyed (scene change)
 		if(_service != null)
 			_service.Stop();
@@ -91,7 +98,8 @@ public class GpsManager : MonoBehaviour {
 		} else {
 			_gpsSet = true;
 		}
-	}
+        InvokeRepeating("UpdateLocation", 0, 0.5f);
+    }
 
 	// The struct which contains latitude, longitude and altitude
 	[System.Serializable]
