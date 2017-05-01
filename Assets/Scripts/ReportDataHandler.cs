@@ -27,7 +27,7 @@ public class ReportDataHandler : MonoBehaviour {
 	/// Open React Native scene
 	/// </summary>
 	public void OpenReactNative() {
-		Application.OpenURL("vegar.kart://rapport?id="+SharedData.AllData.key);
+		Application.OpenURL("vegar.kart://rapport/"+SharedData.AllData.key);
 	}
 
 	/// <summary>
