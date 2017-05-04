@@ -42,6 +42,19 @@ public class CameraBackground : MonoBehaviour {
 		if (WebCamTexture.devices.Length == 0) {
 			return;
 		}
+		if (PlayerPrefs.GetInt("leMode", 0) == 1) {
+			if (_phoneCamera.isPlaying) {
+				_phoneCamera.Stop();
+				_image.color = Color.black;
+				_image.texture = new Texture();
+			}
+		} else {
+			if (!_phoneCamera.isPlaying) {
+				_image.texture = _phoneCamera;
+				_image.color = Color.white;
+				_phoneCamera.Play();
+			}
+		}
 		// If the camera rotation is wrong, fix it
 		float cwNeeded = -_phoneCamera.videoRotationAngle;
 		if (_phoneCamera.videoVerticallyMirrored)

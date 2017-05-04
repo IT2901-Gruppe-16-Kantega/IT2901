@@ -22,6 +22,7 @@ public class OptionsUiScript : MonoBehaviour {
 	[SerializeField] private InputField _xDraggingSensitivityInputField;
 	[SerializeField] private Slider _yDraggingSensitivitySlider;
 	[SerializeField] private InputField _yDraggingSensitivityInputField;
+	[SerializeField] private Toggle _lowEnergyToggle;
 
 	private const float DefaultZoomSens = 0.3f;
 	private const float DefaultZoomThreshold = 50f;
@@ -42,6 +43,7 @@ public class OptionsUiScript : MonoBehaviour {
 		_rotateThresholdSlider.value = PlayerPrefs.GetFloat("RotateThreshold", DefaultRotateThreshold);
 		_xDraggingSensitivitySlider.value = PlayerPrefs.GetFloat("DragSensX", DefaultDraggingSensX);
 		_yDraggingSensitivitySlider.value = PlayerPrefs.GetFloat("DragSensY", DefaultDraggingSensY);
+		_lowEnergyToggle.isOn = PlayerPrefs.GetInt("leMode", 0) == 1;
 	}
 
 	/// <summary>
@@ -144,6 +146,14 @@ public class OptionsUiScript : MonoBehaviour {
 		PlayerPrefs.SetFloat("DragSensY", _yDraggingSensitivitySlider.value);
 		ChangeCameraView.DragSpeedY = _yDraggingSensitivitySlider.value;
 		PlayerPrefs.Save();
+	}
+
+	/// <summary>
+	/// Handles the changing of the low energy mode toggle
+	/// </summary>
+	public void ToggleLowEnergyMode() {
+			PlayerPrefs.SetInt("leMode", _lowEnergyToggle.isOn ? 1: 0);
+			PlayerPrefs.Save();
 	}
 
 	/// <summary>

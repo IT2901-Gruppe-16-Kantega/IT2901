@@ -7,8 +7,6 @@ using UnityEngine.UI;
 
 public class UiScripts : MonoBehaviour {
 
-	public Image InfoBgImage;
-	public Text InfoText;
 	public GameObject Signs;
 	// TODO currently only for saving reports. Maybe add for loading and saving files?
 	public Image StatusImage;
@@ -21,6 +19,7 @@ public class UiScripts : MonoBehaviour {
 	[SerializeField] private RectTransform _menuMiddle;
 	[SerializeField] private RectTransform _menuBottom;
 	[SerializeField] private RectTransform _menuBg;
+	[SerializeField] private RectTransform _infoBox;
 	private readonly Vector3 _menuButtonStartPosition = new Vector3(-10, -10);
 	private readonly Vector3 _menuButtonEndPosition = new Vector3(-310, -10);
 	private readonly Vector3 _middleTargetPosition = new Vector3(-10, 0);
@@ -31,10 +30,8 @@ public class UiScripts : MonoBehaviour {
 	private bool _isMenuShown;
 
 	private bool _isInfoShown;
-    private readonly Vector2 _infoBgMaxSize = new Vector2(320, 300);
-	private readonly Vector2 _infoTextMaxSize = new Vector2(300, 280);
-
-	// TODO object marked
+	private readonly Vector3 _infoBoxStartPosition = new Vector3(-300, -100);
+	private readonly Vector3 _infoBoxEndPosition = new Vector3(0, -100);
 
     private const float AnimationDampening = 0.4f;
 
@@ -109,26 +106,18 @@ public class UiScripts : MonoBehaviour {
 	private IEnumerator AnimateShowInfo() {
 		if (_isInfoShown) {
 			_isInfoShown = false;
-			while (InfoBgImage.rectTransform.sizeDelta.x >= 1f && !_isInfoShown) { // shrink
-				InfoBgImage.rectTransform.sizeDelta = Vector2.Lerp(InfoBgImage.rectTransform.sizeDelta, Vector2.zero,
-					AnimationDampening);
-				InfoText.rectTransform.sizeDelta = Vector2.Lerp(InfoText.rectTransform.sizeDelta, Vector2.zero,
-					AnimationDampening);
+			while (_infoBox.anchoredPosition.x >= _infoBoxStartPosition.x + 1) {
+				_infoBox.anchoredPosition = Vector3.Lerp(_infoBox.anchoredPosition, _infoBoxStartPosition, AnimationDampening);
 				yield return new WaitForEndOfFrame();
 			}
-			InfoText.rectTransform.sizeDelta = Vector2.zero;
-			InfoBgImage.rectTransform.sizeDelta = Vector2.zero;
+			_infoBox.anchoredPosition = _infoBoxStartPosition;
 		} else {
 			_isInfoShown = true;
-			while (InfoBgImage.rectTransform.sizeDelta.x <= _infoBgMaxSize.x - 1f && _isInfoShown) { // enlarge
-				InfoBgImage.rectTransform.sizeDelta = Vector2.Lerp(InfoBgImage.rectTransform.sizeDelta, _infoBgMaxSize,
-					AnimationDampening);
-				InfoText.rectTransform.sizeDelta = Vector2.Lerp(InfoText.rectTransform.sizeDelta, _infoTextMaxSize,
-					AnimationDampening);
+			while (_infoBox.anchoredPosition.x <= _infoBoxEndPosition.x - 1) {
+				_infoBox.anchoredPosition = Vector3.Lerp(_infoBox.anchoredPosition, _infoBoxEndPosition, AnimationDampening);
 				yield return new WaitForEndOfFrame();
 			}
-			InfoText.rectTransform.sizeDelta = _infoTextMaxSize;
-			InfoBgImage.rectTransform.sizeDelta = _infoBgMaxSize;
+			_infoBox.anchoredPosition = _infoBoxEndPosition;
 		}
 	}
 
