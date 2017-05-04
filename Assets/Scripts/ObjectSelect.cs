@@ -13,32 +13,33 @@ public class ObjectSelect : MonoBehaviour {
 	private GameObject _targetPole; // the plate's pole which we want to move
 	private LayerMask _layers; // The layers to target
 	private EventSystem _eventSystem;
-	public GameObject MarkerOn;
-	public GameObject MarkerOff;
 
 	public static bool IsDragging;
 	private Vector3 _screenPosition;
 	private Vector3 _startingPoint;
 	private bool _isOverInfoBox;
 
-    private int _mouseClicks = 0;
-    private float _mouseTimer = 0f;
-    private float _mouseTimerLimit = .6f;
-    public static bool IsZoomed;
-    private Vector3 _lastPosition;
-    private Quaternion _lastRotation;
-    private float _lastFOV;
+	private int _mouseClicks;
+	private float _mouseTimer;
+	private const float MouseTimerLimit = .6f;
+	public static bool IsZoomed;
+	private Vector3 _lastPosition;
+	private Quaternion _lastRotation;
+	private float _lastFov;
 
-    private void Start() {
+	[SerializeField] private Button _markTargetButton;
+	[SerializeField] private Button _resetSignButton;
+
+	private void Start() {
 		_layers = LayerMask.GetMask("Signs");
 		_eventSystem = EventSystem.current;
 	}
 
 	private void Update() {
-        // Dobbel click detection
-        int mouseClicks = CheckMouseDoubleClick();
+		// Dobbel click detection
+		int mouseClicks = CheckMouseDoubleClick();
 
-        if (Input.GetMouseButtonDown(0)) {
+		if (Input.GetMouseButtonDown(0)) {
 			if (_eventSystem.currentSelectedGameObject == null && !_isOverInfoBox) {
 				_targetPlate = ReturnClickedObject();
 				if (_targetPlate != null) {
@@ -53,6 +54,9 @@ public class ObjectSelect : MonoBehaviour {
 		if (Input.GetMouseButtonUp(0)) {
 			IsDragging = false;
 		}
+
+		_resetSignButton.interactable = _targetPlate;
+		_markTargetButton.interactable = _targetPlate;
 
 		if (!IsDragging || _targetPlate == null)
 			return; // To reduce nesting
@@ -72,16 +76,7 @@ public class ObjectSelect : MonoBehaviour {
 				"Avstand flyttet: " + string.Format("{0:F2}m", rom.DeltaDistance) + "\n" +
 				"Retning flyttet [N]: " + string.Format("{0:F2} grader", rom.DeltaBearing);
 
-			// Handling for Marking Objects
-			if (!rom.SomethingIsWrong) {
-				MarkerOn.SetActive(true);
-				MarkerOff.SetActive(false);
-			} else {
-				MarkerOn.SetActive(false);
-				MarkerOff.SetActive(true);
-			}
 		}
-
 
 		// Track the mouse pointer / finger position in the x and y axis, using the depth of the target
 		Vector3 currentScreenSpace = new Vector3(Input.mousePosition.x, Input.mousePosition.y, _screenPosition.z);
@@ -101,31 +96,25 @@ public class ObjectSelect : MonoBehaviour {
 		}
 		_startingPoint = Input.mousePosition;
 
-        if (mouseClicks == 2)
-        {
-            if (IsZoomed)
-            {
-                Camera.main.transform.position = _lastPosition;
-                Camera.main.transform.rotation = _lastRotation;
-                Camera.main.fieldOfView = _lastFOV;
-            }
-            else
-            {
-                _lastPosition = Camera.main.transform.position;
-                _lastRotation = Camera.main.transform.rotation;
-                _lastFOV = Camera.main.fieldOfView;
-                
-                Camera.main.transform.LookAt(_targetPlate.transform.position);
-                float distance = new Vector3(Camera.main.transform.position.x - _targetPlate.transform.position.x, 0, Camera.main.transform.position.z - _targetPlate.transform.position.z).magnitude;
-                // Magic number
-                Camera.main.fieldOfView = 2f * Mathf.Atan((float)((5.2f / distance))) * Mathf.Rad2Deg;
-                Camera.main.fieldOfView = Mathf.Clamp(Camera.main.fieldOfView, 1f, 90f);
-            }
-            IsZoomed = !IsZoomed;
+		if (mouseClicks != 2)
+			return;
+		if (IsZoomed) {
+			Camera.main.transform.position = _lastPosition;
+			Camera.main.transform.rotation = _lastRotation;
+			Camera.main.fieldOfView = _lastFov;
+		} else {
+			_lastPosition = Camera.main.transform.position;
+			_lastRotation = Camera.main.transform.rotation;
+			_lastFov = Camera.main.fieldOfView;
 
-        }
-
-    }
+			Camera.main.transform.LookAt(_targetPlate.transform.position);
+			float distance = new Vector3(Camera.main.transform.position.x - _targetPlate.transform.position.x, 0, Camera.main.transform.position.z - _targetPlate.transform.position.z).magnitude;
+			// Magic number
+			Camera.main.fieldOfView = 2f * Mathf.Atan(5.2f / distance) * Mathf.Rad2Deg;
+			Camera.main.fieldOfView = Mathf.Clamp(Camera.main.fieldOfView, 1f, 90f);
+		}
+		IsZoomed = !IsZoomed;
+	}
 
 	/// <summary>
 	/// Checks the device orientation and changes the x and y Translate values
@@ -133,7 +122,7 @@ public class ObjectSelect : MonoBehaviour {
 	/// <param name="screenPointOffset">The offset between the input location last frame and this frame</param>
 	/// <param name="xDir">The output parameter for the X value</param>
 	/// <param name="yDir">The output parameter for the Y value</param>
-	private void GetXandYOffsets(Vector3 screenPointOffset, out float xDir, out float yDir) {
+	private static void GetXandYOffsets(Vector3 screenPointOffset, out float xDir, out float yDir) {
 		// Check the device orientation, and change Translate values.
 		// Yes, it uses a magic number to divide. Sorry.
 		// ReSharper disable once SwitchStatementMissingSomeCases
@@ -202,22 +191,21 @@ public class ObjectSelect : MonoBehaviour {
 		_isOverInfoBox = false;
 	}
 
-	// For Marking objects with wrong egengeo
+	/// <summary>
+	/// UI OnClick function
+	/// For Marking objects with wrong egengeometri
+	/// </summary>
 	public void MarkTarget() {
 		if (_targetPlate == null)
 			return;
 		RoadObjectManager rom = _targetPlate.GetComponent<RoadObjectManager>();
-		if (rom.SomethingIsWrong) {
-			MarkerOn.SetActive(true);
-			MarkerOff.SetActive(false);
-		} else {
-			MarkerOn.SetActive(false);
-			MarkerOff.SetActive(true);
-		}
+
 		rom.SomethingIsWrong = !rom.SomethingIsWrong;
-		if (_targetPlate != null)
+		if (_targetPlate != null) {
 			_targetPole.GetComponent<SignPlateAdder>().MarkPlates(rom.SomethingIsWrong);
-		
+		}
+
+		// Update objectText
 		ObjectText.text =
 				"ID: " + rom.Objekt.id + "\n" +
 				"Egengeometri: " + rom.Objekt.geometri.egengeometri + "\n" +
@@ -227,26 +215,27 @@ public class ObjectSelect : MonoBehaviour {
 				"Avstand flyttet: " + string.Format("{0:F2}m", rom.DeltaDistance) + "\n" +
 				"Retning flyttet [N]: " + string.Format("{0:F2} grader", rom.DeltaBearing);
 	}
-    private int CheckMouseDoubleClick()
-    {
-        if (Input.GetMouseButtonDown(0) && GUIUtility.hotControl == 0) _mouseClicks++;
-        if (_mouseClicks >= 1 && _mouseClicks < 3)
-        {
-            _mouseTimer += Time.fixedDeltaTime;
 
-            if (_mouseClicks == 2)
-            {
-                _mouseTimer = 0;
-                _mouseClicks = 0;
-                return (_mouseTimer - _mouseTimerLimit < 0) ? 2 : 1;
-            }
-            if (_mouseTimer > _mouseTimerLimit)
-            {
-                _mouseClicks = 0;
-                _mouseTimer = 0;
-                return 1;
-            }
-        }
-        return 0;
-    }
+	/// <summary>
+	/// Handles double click/tap zooming
+	/// </summary>
+	/// <returns>Returns the amount of clicks/taps up to 2</returns>
+	private int CheckMouseDoubleClick() {
+		if (Input.GetMouseButtonDown(0) && GUIUtility.hotControl == 0)
+			_mouseClicks++;
+		if (_mouseClicks < 1 || _mouseClicks >= 3)
+			return 0;
+		_mouseTimer += Time.fixedDeltaTime;
+
+		if (_mouseClicks == 2) {
+			_mouseTimer = 0;
+			_mouseClicks = 0;
+			return (_mouseTimer - MouseTimerLimit < 0) ? 2 : 1;
+		}
+		if (!(_mouseTimer > MouseTimerLimit))
+			return 0;
+		_mouseClicks = 0;
+		_mouseTimer = 0;
+		return 1;
+	}
 }
