@@ -43,17 +43,16 @@ public class CameraBackground : MonoBehaviour {
 			return;
 		}
 		if (PlayerPrefs.GetInt("leMode", 0) == 1) {
-			if (_phoneCamera.isPlaying) {
-				_phoneCamera.Stop();
-				_image.color = Color.black;
-				_image.texture = new Texture();
-			}
-		} else {
-			if (!_phoneCamera.isPlaying) {
-				_image.texture = _phoneCamera;
-				_image.color = Color.white;
-				_phoneCamera.Play();
-			}
+			if (!_phoneCamera.isPlaying) return;
+			_phoneCamera.Stop();
+			_image.color = Color.black;
+			_image.texture = new Texture();
+			return;
+		}
+		if (!_phoneCamera.isPlaying) {
+			_image.texture = _phoneCamera;
+			_image.color = Color.white;
+			_phoneCamera.Play();
 		}
 		// If the camera rotation is wrong, fix it
 		float cwNeeded = -_phoneCamera.videoRotationAngle;

@@ -34,6 +34,9 @@ public class GpsManager : MonoBehaviour {
 
     private void Start() {
 		// Set the service variable to the phones location manager (Input.location)
+	    InitialPositionUpdated = false;
+	    _gpsSet = false;
+
 		_service = Input.location;
 		// If the gps service is not enabled by the user
 		if (!_service.isEnabledByUser) {
@@ -50,7 +53,9 @@ public class GpsManager : MonoBehaviour {
 	}
 
     private void Update() {
-        transform.position = Vector3.MoveTowards(transform.position, _newPosition, MoveSpeed * Time.deltaTime);
+		if (!_gpsSet || !_service.isEnabledByUser)
+			return;
+		transform.position = Vector3.MoveTowards(transform.position, _newPosition, MoveSpeed * Time.deltaTime);
     }
 
     private void UpdateLocation() {

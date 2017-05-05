@@ -21,7 +21,7 @@ public class ObjectSelect : MonoBehaviour {
 
 	private int _mouseClicks;
 	private float _mouseTimer;
-	private const float MouseTimerLimit = .6f;
+	private const float MouseTimerLimit = .4f;
 	public static bool IsZoomed;
 	private Vector3 _lastPosition;
 	private Quaternion _lastRotation;
@@ -61,8 +61,6 @@ public class ObjectSelect : MonoBehaviour {
 		if (!IsDragging || _targetPlate == null)
 			return; // To reduce nesting
 
-		// Deactivate gyro
-
 		RoadObjectManager rom = _targetPlate.GetComponent<RoadObjectManager>();
 		if (_targetPlate != null) {
 			rom.HasBeenMoved = Math.Abs(rom.DeltaDistance) > 0;
@@ -96,13 +94,23 @@ public class ObjectSelect : MonoBehaviour {
 		}
 		_startingPoint = Input.mousePosition;
 
-		if (mouseClicks != 2)
-			return;
+		if (mouseClicks == 2) {
+			ZoomChange();
+		}
+		
+	}
+
+	/// <summary>
+	/// Zooms in and out to road object
+	/// </summary>
+	public void ZoomChange() {
 		if (IsZoomed) {
+			// Zoom out
 			Camera.main.transform.position = _lastPosition;
 			Camera.main.transform.rotation = _lastRotation;
 			Camera.main.fieldOfView = _lastFov;
 		} else {
+			// Zoom in
 			_lastPosition = Camera.main.transform.position;
 			_lastRotation = Camera.main.transform.rotation;
 			_lastFov = Camera.main.fieldOfView;
@@ -196,9 +204,10 @@ public class ObjectSelect : MonoBehaviour {
 	/// For Marking objects with wrong egengeometri
 	/// </summary>
 	public void MarkTarget() {
-		if (_targetPlate == null)
+		GameObject targetPlate = _targetPlate; // To avoid race conditions
+		if (targetPlate == null)
 			return;
-		RoadObjectManager rom = _targetPlate.GetComponent<RoadObjectManager>();
+		RoadObjectManager rom = targetPlate.GetComponent<RoadObjectManager>();
 
 		rom.SomethingIsWrong = !rom.SomethingIsWrong;
 		if (_targetPlate != null) {

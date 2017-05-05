@@ -17,6 +17,7 @@ public class ChangeCameraView : MonoBehaviour {
 
 	private GyroscopeCamera _gyroscopeCamera;
 	private Camera _mainCamera;
+	[SerializeField] private ObjectSelect objectSelectScript;
 
 	private void Start() {
 		IsCarMode = false;
@@ -76,6 +77,9 @@ public class ChangeCameraView : MonoBehaviour {
 	/// Changes the view from first person to third person (car mode)
 	/// </summary>
 	public void ChangeView() {
+		if (ObjectSelect.IsZoomed) {
+			objectSelectScript.ZoomChange();
+		}
 		if (IsCarMode) {
 			// Move main camera back into the start position
 			_targetPosition = _startPosition;
@@ -107,7 +111,7 @@ public class ChangeCameraView : MonoBehaviour {
 		ManualCalibration.DisableCalibration = true;
 		while ((transform.position - _targetPosition).magnitude > 0.1f) {
 			transform.position = Vector3.MoveTowards(transform.position, _targetPosition, MovementSpeed * Time.deltaTime);
-			transform.forward = Vector3.Lerp(transform.forward, UserRenderer.gameObject.transform.forward, MovementSpeed / 50 * Time.deltaTime);
+			transform.forward = Vector3.Lerp(transform.forward, UserRenderer.gameObject.transform.forward, MovementSpeed * Time.deltaTime);
 			yield return new WaitForEndOfFrame();
 		}
 		transform.forward = UserRenderer.gameObject.transform.forward;
