@@ -22,7 +22,7 @@ public class ObjectSelect : MonoBehaviour {
 	private int _mouseClicks;
 	private float _mouseTimer;
 	private const float MouseTimerLimit = .4f;
-	public static bool IsZoomed;
+	public static bool ZoomedOnObject;
 	private Vector3 _lastPosition;
 	private Quaternion _lastRotation;
 	private float _lastFov;
@@ -57,9 +57,16 @@ public class ObjectSelect : MonoBehaviour {
 
 		_resetSignButton.interactable = _targetPlate;
 		_markTargetButton.interactable = _targetPlate;
+		
+		if (ZoomedOnObject && _targetPlate != null) {
+			Debug.Log("Hello");
+			Camera.main.transform.LookAt(_targetPlate.transform.position);
+		}
 
 		if (!IsDragging || _targetPlate == null)
 			return; // To reduce nesting
+
+		
 
 		RoadObjectManager rom = _targetPlate.GetComponent<RoadObjectManager>();
 		if (_targetPlate != null) {
@@ -95,16 +102,18 @@ public class ObjectSelect : MonoBehaviour {
 		_startingPoint = Input.mousePosition;
 
 		if (mouseClicks == 2) {
+			ZoomedOnObject = !ZoomedOnObject;
 			ZoomChange();
 		}
-		
 	}
 
 	/// <summary>
 	/// Zooms in and out to road object
 	/// </summary>
 	public void ZoomChange() {
-		if (IsZoomed) {
+		if (!_targetPlate) // In case this function is called when no target is selected
+			return;
+		if (!ZoomedOnObject) {
 			// Zoom out
 			Camera.main.transform.position = _lastPosition;
 			Camera.main.transform.rotation = _lastRotation;
@@ -121,7 +130,6 @@ public class ObjectSelect : MonoBehaviour {
 			Camera.main.fieldOfView = 2f * Mathf.Atan(5.2f / distance) * Mathf.Rad2Deg;
 			Camera.main.fieldOfView = Mathf.Clamp(Camera.main.fieldOfView, 1f, 90f);
 		}
-		IsZoomed = !IsZoomed;
 	}
 
 	/// <summary>

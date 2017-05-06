@@ -18,6 +18,7 @@ public class GpsManager : MonoBehaviour {
 	// Our default latitude, longitude, and altitude
 	// Default is somewhere in the middle of Trondheim
 	public static GpsLocation MyLocation = new GpsLocation(63.435859, 10.416847, 10); // precision of ~11.1cm
+	
 	private GpsLocation _oldLocation;
 
 	[HideInInspector]
@@ -57,8 +58,7 @@ public class GpsManager : MonoBehaviour {
 			return;
 		transform.position = Vector3.MoveTowards(transform.position, _newPosition, MoveSpeed * Time.deltaTime);
     }
-
-    private void UpdateLocation() {
+	private void UpdateLocation() {
         if (!_gpsSet || !_service.isEnabledByUser) return;
         if (!((_newPosition - transform.position).magnitude < 0.1f)) return;
         MyLocation.Latitude = _service.lastData.latitude; MyLocation.Longitude = _service.lastData.longitude; MyLocation.Altitude = _service.lastData.altitude;

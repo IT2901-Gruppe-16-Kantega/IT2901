@@ -77,7 +77,8 @@ public class ChangeCameraView : MonoBehaviour {
 	/// Changes the view from first person to third person (car mode)
 	/// </summary>
 	public void ChangeView() {
-		if (ObjectSelect.IsZoomed) {
+		if (ObjectSelect.ZoomedOnObject) {
+			ObjectSelect.ZoomedOnObject = false;
 			objectSelectScript.ZoomChange();
 		}
 		if (IsCarMode) {
