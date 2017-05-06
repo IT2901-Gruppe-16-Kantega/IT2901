@@ -1,26 +1,28 @@
 ﻿using UnityEngine;
 
 public class ManualCalibration : MonoBehaviour {
-	public GameObject User;
-
-	public float PerspectiveZoomSpeed = 0.5f;        // The rate of change of the field of view in perspective mode.
+	private const float RotationLimit = 90f;
+	private const float MinFov = 1f;
+	private const float MaxFov = 90f;
 
 	public static float RotationSensitivity = 0.8f; // To dampen the rotation. Higher means more rotation
 	public static float RotationThreshold = 4f;
-	private float _totalRotation;
-	private bool _isRotating;
-	private const float RotationLimit = 90f;
-
-	private float _cameraRotationOffset;
 	public static float ZoomSensitivity = 0.3f; // To dampen the pinching. Higher means more zooming
 	public static float ZoomThreshold = 50;
-	private float _totalZoom;
-	private bool _isZooming;
-	private const float MinFov = 1f;
-	private const float MaxFov = 90f;
 	public static bool DisableCalibration;
 
-	[SerializeField] private GyroscopeCamera _gyroCam;
+	private float _cameraRotationOffset;
+
+	[SerializeField]
+	private GyroscopeCamera _gyroCam;
+
+	private bool _isRotating;
+	private bool _isZooming;
+	private float _totalRotation;
+	private float _totalZoom;
+
+	public float PerspectiveZoomSpeed = 0.5f; // The rate of change of the field of view in perspective mode.
+	public GameObject User;
 
 	private void Start() {
 		_gyroCam = GetComponent<GyroscopeCamera>();
@@ -30,9 +32,9 @@ public class ManualCalibration : MonoBehaviour {
 		RotationThreshold = PlayerPrefs.GetFloat("RotationThreshold", RotationThreshold);
 	}
 
-
 	private void Update() {
-		if (DisableCalibration) return;
+		if (DisableCalibration)
+			return;
 
 		// If we dont have two fingers on the screen, reset total variables and set everything to false.
 		if (Input.touchCount != 2) {
@@ -58,7 +60,7 @@ public class ManualCalibration : MonoBehaviour {
 
 		_totalZoom += Mathf.Abs(DetectTouchMovement.PinchDistanceDelta);
 		// If _totalZoom crosses the threshold and we arent rotating, zoom
-		if (_totalZoom >= ZoomThreshold && !_isRotating) { 
+		if (_totalZoom >= ZoomThreshold && !_isRotating) {
 			//Zoom
 			_isZooming = true;
 			float pinchAmount = DetectTouchMovement.PinchDistanceDelta * ZoomSensitivity;

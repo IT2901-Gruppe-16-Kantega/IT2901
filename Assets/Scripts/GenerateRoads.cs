@@ -1,28 +1,31 @@
 ﻿using System;
 using System.Collections;
-using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
+using UnityEngine.Rendering;
 
 public class GenerateRoads : MonoBehaviour {
-
-	public Material RoadMaterial;
-
-	public GameObject RoadsParent;
+	[HideInInspector]
+	public static bool IsCreatingRoads = true;
 
 	[SerializeField]
 	private ApiWrapper _apiWrapper;
 
-	[HideInInspector]
-	public static bool IsCreatingRoads = true;
-
 	private bool _useLocalData;
+
+	public Material RoadMaterial;
+
+	public GameObject RoadsParent;
 
 	private void Start() {
 		_apiWrapper = GetComponent<ApiWrapper>();
 		_useLocalData = PlayerPrefs.GetInt("UseLocalData", 1) == 1;
 	}
 
+	/// <summary>
+	///     Gets nearby roads and instantiates them
+	/// </summary>
 	public void FetchRoad() {
 		string localData = LocalStorage.GetData("roads.json");
 		_useLocalData = true; // TODO in react native -> send roads as well.
@@ -40,11 +43,16 @@ public class GenerateRoads : MonoBehaviour {
 			UiScripts.RoadsToInstantiate = data.objekter.Count;
 
 			// Go through each Objekter in the data.objekter (the road objects)
-			List<Objekter> roadList = data.objekter.Select(obj => _apiWrapper.ParseObject(obj)).ToList();
+			List<Objekter> roadList = data.objekter.Select(obj => _apiWrapper.ParseObject(obj))
+				.ToList();
 			StartCoroutine(CreateRoadMesh(roadList));
 		}
 	}
 
+	/// <summary>
+	///     Creates a roadmesh based on the list of roads from nvdb
+	/// </summary>
+	/// <param name="roads">The list of roads to create</param>
 	public IEnumerator CreateRoadMesh(List<Objekter> roads) {
 		IsCreatingRoads = true;
 		float height = 0.0000f;
@@ -66,8 +74,8 @@ public class GenerateRoads : MonoBehaviour {
 					? Quaternion.FromToRotation(Vector3.forward,
 						HelperFunctions.GetPositionFromCoords(coords, road.parsedLocation[i + 1]))
 					: Quaternion.FromToRotation(Vector3.back, HelperFunctions.GetPositionFromCoords(coords, road.parsedLocation[i - 1]));
-				float deltaX = (float) (-System.Math.Cos((rotation.eulerAngles.y - 180) * (System.Math.PI / 180)) * roadWidth / 2);
-				float deltaZ = (float) (System.Math.Sin((rotation.eulerAngles.y - 180) * (System.Math.PI / 180)) * roadWidth / 2);
+				float deltaX = (float) (-Math.Cos((rotation.eulerAngles.y - 180) * (Math.PI / 180)) * roadWidth / 2);
+				float deltaZ = (float) (Math.Sin((rotation.eulerAngles.y - 180) * (Math.PI / 180)) * roadWidth / 2);
 
 				vertices.Add(new Vector3(location.x + deltaX, height, location.z + deltaZ));
 				vertices.Add(new Vector3(location.x - deltaX, height, location.z - deltaZ));
@@ -75,22 +83,23 @@ public class GenerateRoads : MonoBehaviour {
 			roadObject.transform.position = vertices[0] - vertices[vertices.Count - 1];
 			List<int> triangles = new List<int>();
 
-			for (int i = 0; i < vertices.Count; i++) {
+			for (int i = 0; i < vertices.Count; i++)
 				vertices[i] -= roadObject.transform.position;
-			}
 
 			for (int j = 0; j < vertices.Count / 2 - 1; j++) {
 				triangles.Add(2 * j);
-				triangles.Add((2 * j) + 1);
-				triangles.Add((2 * j) + 3);
+				triangles.Add(2 * j + 1);
+				triangles.Add(2 * j + 3);
 
 				triangles.Add(2 * j);
-				triangles.Add((2 * j) + 3);
-				triangles.Add((2 * j) + 2);
+				triangles.Add(2 * j + 3);
+				triangles.Add(2 * j + 2);
 			}
 			roadObject.name = road.parsedLocation[0] + " - " + road.parsedLocation[road.parsedLocation.Count - 1];
 
-			Mesh mesh = new Mesh {name = roadObject.name};
+			Mesh mesh = new Mesh {
+				name = roadObject.name
+			};
 
 			// Create a mesh filter
 			MeshFilter meshFilter = roadObject.AddComponent<MeshFilter>();
@@ -115,7 +124,7 @@ public class GenerateRoads : MonoBehaviour {
 
 			meshRenderer.material = RoadMaterial;
 			meshRenderer.material.mainTextureScale = new Vector2(vertices.Count / 2f, 1);
-			meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+			meshRenderer.shadowCastingMode = ShadowCastingMode.Off;
 			height -= 0.001f;
 			UiScripts.RoadsInstantiated++;
 			if (index % 10 == 0)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+
 // ReSharper disable InconsistentNaming
 
 [Serializable]
@@ -11,111 +12,111 @@ public class Type {
 [Serializable]
 public class Enhet {
 	public int id;
-	public string navn;
 	public string kortnavn;
+	public string navn;
 }
 
 [Serializable]
 public class Egenskaper {
-	public int id;
-	public string navn;
 	public int datatype;
 	public string datatype_tekst;
-	public string verdi;
-	public int enum_id;
 	public Enhet enhet;
+	public int enum_id;
+	public int id;
+	public string navn;
+	public string verdi;
 }
 
 [Serializable]
 public class Geometri {
-	public string wkt;
-	public int srid;
 	public bool egengeometri;
+	public int srid;
+	public string wkt;
 }
 
 [Serializable]
 public class Kontraktsområer {
-	public int nummer;
 	public string navn;
+	public int nummer;
 }
 
 [Serializable]
 public class Riksvegruter {
-	public string nummer;
 	public string navn;
+	public string nummer;
 	public string periode;
 }
 
 [Serializable]
 public class Vegreferanser {
-	public int fylke;
-	public int kommune;
-	public string kategori;
-	public string status;
-	public int nummer;
-	public int hp;
 	public int fra_meter;
-	public int til_meter;
+	public int fylke;
+	public int hp;
+	public string kategori;
+	public int kommune;
 	public string kortform;
+	public int nummer;
+	public string status;
+	public int til_meter;
 }
 
 [Serializable]
 public class Stedfestinger {
-	public int veglenkeid;
 	public double fra_posisjon;
-	public double til_posisjon;
 	public string kortform;
 	public string retning;
 	public string sideposisjon;
+	public double til_posisjon;
+	public int veglenkeid;
 }
 
 [Serializable]
 public class Lokasjon {
-	public List<int> kommuner;
 	public List<int> fylker;
-	public List<int> regioner;
-	public List<int> vegavdelinger;
-	public List<Kontraktsområer> kontraktsområder;
-	public List<Riksvegruter> riksvegruter;
-	public List<Vegreferanser> vegreferanser;
-	public List<Stedfestinger> stedfestinger;
 	public Geometri geometri;
+	public List<int> kommuner;
+	public List<Kontraktsområer> kontraktsområder;
+	public List<int> regioner;
+	public List<Riksvegruter> riksvegruter;
+	public List<Stedfestinger> stedfestinger;
 	public int strekningslengde;
+	public List<int> vegavdelinger;
+	public List<Vegreferanser> vegreferanser;
 }
 
 [Serializable]
 public class Stedfesting {
-	public int veglenkeid;
 	public double fra_posisjon;
-	public double til_posisjon;
 	public string kortform;
 	public string retning;
 	public string sideposisjon;
+	public double til_posisjon;
+	public int veglenkeid;
 }
 
 [Serializable]
 public class Vegreferanse {
-	public int fylke;
-	public int kommune;
-	public string kategori;
-	public string status;
-	public int nummer;
-	public int hp;
 	public int fra_meter;
-	public int til_meter;
+	public int fylke;
+	public int hp;
+	public string kategori;
+	public int kommune;
 	public string kortform;
+	public int nummer;
+	public string status;
+	public int til_meter;
 }
 
 [Serializable]
 public class Vegsegmenter {
-	public Stedfesting stedfesting;
+	public int fylke;
 	public Geometri geometri;
 	public int kommune;
-	public int fylke;
 	public int region;
+	public Stedfesting stedfesting;
+	public int strekningslengde;
 	public int vegavdeling;
 	public Vegreferanse vegreferanse;
-	public int strekningslengde;
 }
 
 [Serializable]
@@ -138,23 +139,23 @@ public class Relasjoner {
 
 [Serializable]
 public class Objekter {
-	public int id;
-	public string href;
 	public List<Egenskaper> egenskaper;
 	public Geometri geometri;
+	public string href;
+	public int id;
 	public Lokasjon lokasjon;
-	public List<Vegsegmenter> vegsegmenter;
+	public Metadata metadata;
 	public List<GpsManager.GpsLocation> parsedLocation;
 	public Relasjoner relasjoner;
-	public Metadata metadata;
+	public List<Vegsegmenter> vegsegmenter;
 }
 
 [Serializable]
 public class Metadata {
-	public Type type;
-	public double distance;
 	public double bearing;
+	public double distance;
 	public string notat;
+	public Type type;
 }
 
 [Serializable]
@@ -165,11 +166,11 @@ public class NvdbObjekt {
 
 [Serializable]
 public class RoadSearchObject {
-    public long key;
-    public string date;
-    public string description;
-    public List<Objekter> roadObjects;
-    public List<Objekter> report;
+	public string date;
+	public string description;
+	public long key;
+	public List<Objekter> report;
+	public List<Objekter> roadObjects;
 }
 
 [Serializable]
@@ -179,24 +180,23 @@ public class Report {
 
 [Serializable]
 public class ReportObject {
-	public int vegobjekt;
 	public List<ReportEgenskap> endringer;
+	public int vegobjekt;
 }
 
 [Serializable]
 public class ReportEgenskap {
-	public ReportEgenskap2 egenskap;
-	public string dato;
-	public string type;
 	public string beskrivelse;
-
+	public string dato;
+	public ReportEgenskap2 egenskap;
+	public string type;
 }
 
 [Serializable]
 public class ReportEgenskap2 {
-	public int id;
-	public string navn;
 	public int datatype;
 	public string datatype_tekst;
+	public int id;
+	public string navn;
 	public string verdi;
 }

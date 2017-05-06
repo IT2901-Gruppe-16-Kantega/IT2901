@@ -2,44 +2,35 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class GenerateObjects : MonoBehaviour {
-
 	// Max seconds before fetching using default coords
 	private const int MaxTimeWait = 10;
-	private int _timeWaited;
 
-	// Our location. Default location is somewhere in the middle of Trondheim
-	//public static GPSManager.GPSLocation myLocation = new GPSManager.GPSLocation(63.430626, 10.392145);
-	//public static GPSManager.GPSLocation myLocation = new GPSManager.GPSLocation(63.417687, 10.404782);
+	[HideInInspector]
+	public static bool IsCreatingSigns = true;
 
-	// The list containing the locations of each road object
-	private List<Objekter> _roadObjectList = new List<Objekter>();
+	public static bool LineObjects;
 	private readonly Hashtable _signPosts = new Hashtable();
 
-	// The object to instantiate (create) when placing the road objects
-	public GameObject SignPost;
-	public GameObject DefaultObject;
-	public GameObject LineObject;
-
-	public GameObject SignsParent;
-
-	// SerializeField makes the private field visible to the editor
-	// Currently, no other GameObject needs the GPSManager, so this is fine
-	// May want to make GPSManager static if all objects need access
 	[SerializeField]
 	private ApiWrapper _apiWrapper;
 
 	[SerializeField]
 	private GenerateRoads _roadGenerator;
 
-	[HideInInspector]
-	public static bool IsCreatingSigns = true;
+	// The list containing the locations of each road object
+	private List<Objekter> _roadObjectList = new List<Objekter>();
+	private int _timeWaited;
 
 	private bool _useLocalData; // true if RN data is NOT used (fetch objects from this app)
+	public GameObject DefaultObject;
+	public GameObject LineObject;
 
-	public static bool LineObjects;
+	// The object to instantiate (create) when placing the road objects
+	public GameObject SignPost;
+
+	public GameObject SignsParent;
 
 	private void Start() {
 		_apiWrapper = GetComponent<ApiWrapper>();
@@ -49,9 +40,10 @@ public class GenerateObjects : MonoBehaviour {
 		StartCoroutine(FetchAfterLocationUpdated());
 	}
 
-	// Coroutine: FetchObjects
-	// Checks if GPS have gotten the user's location, or until timeout
-	// Then fetches the objects from NVDB using the user's location or the mock location
+	/// <summary>
+	///     Checks if GPS have gotten the user's location, or until timeout
+	///     Then fetches the objects from NVDB using the user's location or the mock location
+	/// </summary>
 	private IEnumerator FetchAfterLocationUpdated() {
 		// Wait until position has been updated, or until timeout before fetching
 		while (_timeWaited < MaxTimeWait && !GpsManager.InitialPositionUpdated) {
@@ -63,7 +55,7 @@ public class GenerateObjects : MonoBehaviour {
 	}
 
 	/// <summary>
-	/// Gets the objects either from the database or locally and instantiates the objects
+	///     Gets the objects either from the database or locally and instantiates the objects
 	/// </summary>
 	private void FetchObjects() {
 		// Second parameter is callback, initializing the object list and making the objects when the function is done.
@@ -81,8 +73,10 @@ public class GenerateObjects : MonoBehaviour {
 			Debug.Log(localData);
 			// Parse the local data
 			RoadSearchObject searchData = JsonUtility.FromJson<RoadSearchObject>(localData);
-            SharedData.AllData = searchData;
-			NvdbObjekt data = new NvdbObjekt {objekter = searchData.roadObjects};
+			SharedData.AllData = searchData;
+			NvdbObjekt data = new NvdbObjekt {
+				objekter = searchData.roadObjects
+			};
 			UiScripts.ObjectsToInstantiate = data.objekter.Count;
 			// Go through each Objekter in the data.objekter (the road objects)
 			foreach (Objekter obj in data.objekter) {
@@ -97,7 +91,10 @@ public class GenerateObjects : MonoBehaviour {
 		}
 	}
 
-	// Uses the locations in roadObjectList and instantiates objects
+	/// <summary>
+	///     Uses the locations in roadObjectList and instantiates objects
+	/// </summary>
+	/// <param name="objects">The list of objects to instantiate</param>
 	private IEnumerator MakeObjects(IList<Objekter> objects) {
 		IsCreatingSigns = true;
 		for (int i = 0; i < objects.Count; i++) {
@@ -110,31 +107,37 @@ public class GenerateObjects : MonoBehaviour {
 				if (foreldre != null && _signPosts.ContainsKey(foreldre.vegobjekter[0])) {
 					GameObject signPost = _signPosts[foreldre.vegobjekter[0]] as GameObject;
 					if (signPost)
-						signPost.GetComponent<SignPlateAdder>().AddPlate(objekt);
+						signPost.GetComponent<SignPlateAdder>()
+							.AddPlate(objekt);
 				} else if (foreldre == null && _signPosts.ContainsKey(objekt.id)) {
 					// Check if it doesnt have a sign point parent (95) and instantiate it and add it to the report
 					GameObject signPost = _signPosts[objekt.id] as GameObject;
 					if (signPost)
-						signPost.GetComponent<SignPlateAdder>().AddPlate(objekt);
+						signPost.GetComponent<SignPlateAdder>()
+							.AddPlate(objekt);
 					objekt.metadata.notat = "Mangler forelder: skiltpunkt (95)";
-					SharedData.Data.Add(objekt);
+					SharedData.WrongObjects.Add(objekt);
 				} else {
 					// add the parent to the hashmap and add a plate to it
 					GameObject newSignPost =
-						Instantiate(SignPost, HelperFunctions.GetPositionFromCoords(objekt.parsedLocation[0]), Quaternion.identity, SignsParent.transform) as GameObject;
+						Instantiate(SignPost, HelperFunctions.GetPositionFromCoords(objekt.parsedLocation[0]), Quaternion.identity,
+							SignsParent.transform) as GameObject;
 					// Add signpost to hashmap using the signpoint id, otherwise use signplate id
 					_signPosts.Add(foreldre != null ? foreldre.vegobjekter[0] : objekt.id, newSignPost);
 					if (newSignPost) {
 						if (foreldre != null)
 							newSignPost.name = foreldre.vegobjekter[0].ToString();
-						newSignPost.GetComponent<SignPlateAdder>().AddPlate(objekt);
+						newSignPost.GetComponent<SignPlateAdder>()
+							.AddPlate(objekt);
 					}
 				}
 			} else {
 				// For everything else
 				if (objekt.parsedLocation.Count == 1) {
 					// if it has a single location
-					GameObject newDefaultGameObject = Instantiate(DefaultObject, HelperFunctions.GetPositionFromCoords(objekt.parsedLocation[0]), Quaternion.identity, SignsParent.transform) as GameObject;
+					GameObject newDefaultGameObject =
+						Instantiate(DefaultObject, HelperFunctions.GetPositionFromCoords(objekt.parsedLocation[0]), Quaternion.identity,
+							SignsParent.transform) as GameObject;
 					if (newDefaultGameObject != null) {
 						RoadObjectManager rom = newDefaultGameObject.GetComponent<RoadObjectManager>();
 						rom.IsDefault = true;
@@ -154,9 +157,9 @@ public class GenerateObjects : MonoBehaviour {
 					}
 					if (coordinates.Length == 0)
 						continue;
-					//Debug.Log(objekt.parsedLocation[0] + " - " + coordinates[0]);
 					LineObjects = true;
-					GameObject lineObject = Instantiate(LineObject, coordinates[0], Quaternion.identity, SignsParent.transform) as GameObject;
+					GameObject lineObject =
+						Instantiate(LineObject, coordinates[0], Quaternion.identity, SignsParent.transform) as GameObject;
 					if (lineObject != null) {
 						LineRenderer lineRenderer = lineObject.GetComponent<LineRenderer>();
 						lineRenderer.SetVertexCount(coordinates.Length);

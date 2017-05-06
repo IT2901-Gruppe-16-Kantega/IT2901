@@ -1,48 +1,45 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System.Collections;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class ReportDataHandler : MonoBehaviour {
-
 	[SerializeField]
 	private GameObject _contentGameObject;
 
 	[SerializeField]
 	private GameObject _objekt;
-	
+
 	private void Start() {
-		Debug.Log(SharedData.AllData.key);
 		StartCoroutine(ShowReport());
 	}
 
 	/// <summary>
-	/// Go back to main scene
+	///     Go back to main scene
 	/// </summary>
 	public void GoBack() {
 		StartCoroutine(LoadMainScene());
 	}
 
 	/// <summary>
-	/// Open React Native scene
+	///     Open React Native scene
 	/// </summary>
 	public void OpenReactNative() {
-		Application.OpenURL("vegar.kart://rapport/"+SharedData.AllData.key);
+		Application.OpenURL("vegar.kart://rapport/" + SharedData.AllData.key);
 	}
 
 	/// <summary>
-	/// Loads main scene
+	///     Loads main scene
 	/// </summary>
 	private static IEnumerator LoadMainScene() {
 		AsyncOperation asyncOperation = SceneManager.LoadSceneAsync("Main Scene");
 		while (!asyncOperation.isDone)
 			yield return null;
 	}
-	
 
 	/// <summary>
-	/// Creates a list of the objects in the report with their ID and metadata
-	/// Adds one each frame, and because of the very empty scene, this is really quick.
+	///     Creates a list of the objects in the report with their ID and metadata
+	///     Adds one each frame, and because of the very empty scene, this is really quick.
 	/// </summary>
 	private IEnumerator ShowReport() {
 		// Create a list of road objects with their info
@@ -50,30 +47,35 @@ public class ReportDataHandler : MonoBehaviour {
 		float height = 50;
 		RectTransform contentRectTransform = _contentGameObject.GetComponent<RectTransform>();
 		contentRectTransform.sizeDelta = new Vector2(contentRectTransform.sizeDelta.x, 0);
-		foreach (Objekter objekt in SharedData.Data) {
+		foreach (Objekter objekt in SharedData.WrongObjects) {
 			// Create a parent gameobject for the road objects whose parent is the _contentGameObject
 			GameObject parent = Instantiate(_objekt, _contentGameObject.transform) as GameObject;
-			if (parent == null) continue;
+			if (parent == null)
+				continue;
 			parent.name = objekt.id.ToString();
 
 			// Write the name (ID) of the object
-			Text objektNameText = parent.transform.GetChild(0).GetComponent<Text>();
+			Text objektNameText = parent.transform.GetChild(0)
+				.GetComponent<Text>();
 			if (objektNameText == null)
 				continue;
 			objektNameText.text = string.Format("ID: {0}", objekt.id);
 			objektNameText.transform.SetParent(parent.transform);
 
 			// Write how far and the bearing of the distance moved
-			Text objektInfoText = objektNameText.transform.GetChild(0).GetComponent<Text>();
+			Text objektInfoText = objektNameText.transform.GetChild(0)
+				.GetComponent<Text>();
 			if (objektInfoText == null)
 				continue;
-			objektInfoText.text = string.Format("Distanse flyttet: \t\t\t{0:F2} meter\nGrader mot klokken: \t\t\t{1:F2} grader\nNotater: \t\t\t\t\t{2}", objekt.metadata.distance, objekt.metadata.bearing, objekt.metadata.notat);
+			objektInfoText.text =
+				string.Format(
+					"Distanse flyttet: \t\t\t{0:F2} meter\nGrader mot klokken: \t\t\t{1:F2} grader\nNotater: \t\t\t\t\t{2}",
+					objekt.metadata.distance, objekt.metadata.bearing, objekt.metadata.notat);
 			objektInfoText.transform.parent.SetParent(parent.transform);
 			parent.transform.localScale = Vector3.one;
 			parent.transform.localPosition = new Vector3(350, -height, 10);
 			height += 100;
 			contentRectTransform.sizeDelta = new Vector2(contentRectTransform.sizeDelta.x, contentRectTransform.sizeDelta.y + 100);
-			Debug.Log(objekt.id.ToString());
 			yield return null;
 		}
 		Debug.Log("Report Created");

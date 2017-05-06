@@ -3,27 +3,9 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Handles the options inputs
+///     Handles the options inputs
 /// </summary>
 public class OptionsUiScript : MonoBehaviour {
-
-	[SerializeField] private RectTransform _optionsScreen;
-
-	// Options screen UI elements
-	[SerializeField] private Slider _zoomSensitivitySlider;
-	[SerializeField] private InputField _zoomSensitivityInputField;
-	[SerializeField] private Slider _zoomThresholdSlider;
-	[SerializeField] private InputField _zoomThresholdInputField;
-	[SerializeField] private Slider _rotateSensitivitySlider;
-	[SerializeField] private InputField _rotateSensitivityInputField;
-	[SerializeField] private Slider _rotateThresholdSlider;
-	[SerializeField] private InputField _rotateThresholdInputField;
-	[SerializeField] private Slider _xDraggingSensitivitySlider;
-	[SerializeField] private InputField _xDraggingSensitivityInputField;
-	[SerializeField] private Slider _yDraggingSensitivitySlider;
-	[SerializeField] private InputField _yDraggingSensitivityInputField;
-	[SerializeField] private Toggle _lowEnergyToggle;
-
 	private const float DefaultZoomSens = 0.3f;
 	private const float DefaultZoomThreshold = 50f;
 	private const float DefaultRotateSens = 0.8f;
@@ -32,8 +14,51 @@ public class OptionsUiScript : MonoBehaviour {
 	private const float DefaultDraggingSensY = 0.7f;
 
 	private const float AnimationDampening = 0.2f;
-	private bool _isOptionShown;
 	private bool _disableInput;
+	private bool _isOptionShown;
+
+	[SerializeField]
+	private Toggle _lowEnergyToggle;
+
+	[SerializeField]
+	private RectTransform _optionsScreen;
+
+	[SerializeField]
+	private InputField _rotateSensitivityInputField;
+
+	[SerializeField]
+	private Slider _rotateSensitivitySlider;
+
+	[SerializeField]
+	private InputField _rotateThresholdInputField;
+
+	[SerializeField]
+	private Slider _rotateThresholdSlider;
+
+	[SerializeField]
+	private InputField _xDraggingSensitivityInputField;
+
+	[SerializeField]
+	private Slider _xDraggingSensitivitySlider;
+
+	[SerializeField]
+	private InputField _yDraggingSensitivityInputField;
+
+	[SerializeField]
+	private Slider _yDraggingSensitivitySlider;
+
+	[SerializeField]
+	private InputField _zoomSensitivityInputField;
+
+	// Options screen UI elements
+	[SerializeField]
+	private Slider _zoomSensitivitySlider;
+
+	[SerializeField]
+	private InputField _zoomThresholdInputField;
+
+	[SerializeField]
+	private Slider _zoomThresholdSlider;
 
 	private void Start() {
 		// Load previous values
@@ -47,117 +72,111 @@ public class OptionsUiScript : MonoBehaviour {
 	}
 
 	/// <summary>
-	/// Handles the changing of the zoom sensitivity slider or input field, and saves the value.
+	///     Handles the changing of the zoom sensitivity slider or input field, and saves the value.
 	/// </summary>
 	/// <param name="sliderChanged">If the slider was changed.</param>
 	public void ZoomSensitivityChange(bool sliderChanged) {
 		if (_disableInput)
 			return;
-		if (sliderChanged) {
+		if (sliderChanged)
 			_zoomSensitivityInputField.text = _zoomSensitivitySlider.value.ToString();
-		} else {
+		else
 			_zoomSensitivitySlider.value = float.Parse(_zoomSensitivityInputField.text);
-		}
 		PlayerPrefs.SetFloat("ZoomSens", _zoomSensitivitySlider.value);
 		ManualCalibration.ZoomSensitivity = _zoomSensitivitySlider.value;
 		PlayerPrefs.Save();
 	}
 
 	/// <summary>
-	/// Handles the changing of the zoom threshold slider or input field, and saves the value.
+	///     Handles the changing of the zoom threshold slider or input field, and saves the value.
 	/// </summary>
 	/// <param name="sliderChanged">If the slider was changed.</param>
 	public void ZoomThresholdChange(bool sliderChanged) {
 		if (_disableInput)
 			return;
-		if (sliderChanged) {
+		if (sliderChanged)
 			_zoomThresholdInputField.text = _zoomThresholdSlider.value.ToString();
-		} else {
+		else
 			_zoomThresholdSlider.value = float.Parse(_zoomThresholdInputField.text);
-		}
 		PlayerPrefs.SetFloat("ZoomThreshold", _zoomThresholdSlider.value);
 		ManualCalibration.ZoomThreshold = _zoomThresholdSlider.value;
 		PlayerPrefs.Save();
 	}
 
 	/// <summary>
-	/// Handles the changing of the rotate sensitivity slider or input field, and saves the value.
+	///     Handles the changing of the rotate sensitivity slider or input field, and saves the value.
 	/// </summary>
 	/// <param name="sliderChanged">If the slider was changed.</param>
 	public void RotateSensitivityChange(bool sliderChanged) {
 		if (_disableInput)
 			return;
-		if (sliderChanged) {
+		if (sliderChanged)
 			_rotateSensitivityInputField.text = _rotateSensitivitySlider.value.ToString();
-		} else {
+		else
 			_rotateSensitivitySlider.value = float.Parse(_rotateSensitivityInputField.text);
-		}
 		PlayerPrefs.SetFloat("RotateSens", _rotateSensitivitySlider.value);
 		ManualCalibration.RotationSensitivity = _rotateSensitivitySlider.value;
 		PlayerPrefs.Save();
 	}
 
 	/// <summary>
-	/// Handles the changing of the rotate threshold slider or input field, and saves the value.
+	///     Handles the changing of the rotate threshold slider or input field, and saves the value.
 	/// </summary>
 	/// <param name="sliderChanged">If the slider was changed.</param>
 	public void RotateThresholdChange(bool sliderChanged) {
-		if (_disableInput) 
+		if (_disableInput)
 			return;
-		if (sliderChanged) {
+		if (sliderChanged)
 			_rotateThresholdInputField.text = _rotateThresholdSlider.value.ToString();
-		} else {
+		else
 			_rotateThresholdSlider.value = float.Parse(_rotateThresholdInputField.text);
-		}
 		PlayerPrefs.SetFloat("RotateThreshold", _rotateThresholdSlider.value);
 		ManualCalibration.RotationThreshold = _rotateThresholdSlider.value;
 		PlayerPrefs.Save();
 	}
 
 	/// <summary>
-	/// Handles the changing of the x dragging sensitivity slider or input field, and saves the value.
+	///     Handles the changing of the x dragging sensitivity slider or input field, and saves the value.
 	/// </summary>
 	/// <param name="sliderChanged">If the slider was changed.</param>
 	public void XDragSensChange(bool sliderChanged) {
 		if (_disableInput)
 			return;
-		if (sliderChanged) {
+		if (sliderChanged)
 			_xDraggingSensitivityInputField.text = _xDraggingSensitivitySlider.value.ToString();
-		} else {
+		else
 			_xDraggingSensitivitySlider.value = float.Parse(_xDraggingSensitivityInputField.text);
-		}
 		PlayerPrefs.SetFloat("DragSensX", _xDraggingSensitivitySlider.value);
 		ChangeCameraView.DragSpeedX = _xDraggingSensitivitySlider.value;
 		PlayerPrefs.Save();
 	}
 
 	/// <summary>
-	/// Handles the changing of the y dragging sensitivity slider or input field, and saves the value.
+	///     Handles the changing of the y dragging sensitivity slider or input field, and saves the value.
 	/// </summary>
 	/// <param name="sliderChanged">If the slider was changed.</param>
 	public void YDragSensChange(bool sliderChanged) {
 		if (_disableInput)
 			return;
-		if (sliderChanged) {
+		if (sliderChanged)
 			_yDraggingSensitivityInputField.text = _yDraggingSensitivitySlider.value.ToString();
-		} else {
+		else
 			_yDraggingSensitivitySlider.value = float.Parse(_yDraggingSensitivityInputField.text);
-		}
 		PlayerPrefs.SetFloat("DragSensY", _yDraggingSensitivitySlider.value);
 		ChangeCameraView.DragSpeedY = _yDraggingSensitivitySlider.value;
 		PlayerPrefs.Save();
 	}
 
 	/// <summary>
-	/// Handles the changing of the low energy mode toggle
+	///     Handles the changing of the low energy mode toggle
 	/// </summary>
 	public void ToggleLowEnergyMode() {
-			PlayerPrefs.SetInt("leMode", _lowEnergyToggle.isOn ? 1: 0);
-			PlayerPrefs.Save();
+		PlayerPrefs.SetInt("leMode", _lowEnergyToggle.isOn ? 1 : 0);
+		PlayerPrefs.Save();
 	}
 
 	/// <summary>
-	/// Shows or hides the Options screen.
+	///     Shows or hides the Options screen.
 	/// </summary>
 	public void GoOptionsOrBack() {
 		if (_disableInput)
@@ -166,7 +185,7 @@ public class OptionsUiScript : MonoBehaviour {
 	}
 
 	/// <summary>
-	/// Resets the various values to the default ones.
+	///     Resets the various values to the default ones.
 	/// </summary>
 	public void ResetOptions() {
 		// Reset all values
@@ -182,7 +201,7 @@ public class OptionsUiScript : MonoBehaviour {
 	}
 
 	/// <summary>
-	/// Animates showing or hiding of the options screen.
+	///     Animates showing or hiding of the options screen.
 	/// </summary>
 	private IEnumerator AnimateOptions() {
 		_disableInput = true;
@@ -190,7 +209,8 @@ public class OptionsUiScript : MonoBehaviour {
 			// Hide Options Screen
 			_isOptionShown = false;
 			while (_optionsScreen.anchoredPosition.x <= 719) {
-				_optionsScreen.anchoredPosition = Vector2.Lerp(_optionsScreen.anchoredPosition, new Vector2(720, 0), AnimationDampening);
+				_optionsScreen.anchoredPosition = Vector2.Lerp(_optionsScreen.anchoredPosition, new Vector2(720, 0),
+					AnimationDampening);
 				yield return new WaitForEndOfFrame();
 			}
 			_optionsScreen.anchoredPosition = new Vector2(720, 0);
