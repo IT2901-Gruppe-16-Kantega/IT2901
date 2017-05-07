@@ -51,7 +51,6 @@ public class GenerateObjects : MonoBehaviour {
 			_timeWaited++;
 		}
 		FetchObjects();
-		_roadGenerator.FetchRoad();
 	}
 
 	/// <summary>
@@ -77,6 +76,7 @@ public class GenerateObjects : MonoBehaviour {
 			NvdbObjekt data = new NvdbObjekt {
 				objekter = searchData.roadObjects
 			};
+			_roadGenerator.FetchRoad(); // Since the local data has been safely loaded, fetch the roads
 			UiScripts.ObjectsToInstantiate = data.objekter.Count;
 			// Go through each Objekter in the data.objekter (the road objects)
 			foreach (Objekter obj in data.objekter) {
