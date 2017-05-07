@@ -12,25 +12,27 @@ public class DetectTouchMovement : MonoBehaviour {
 	private const float MinPinchDistance = 0;
 
 	/// <summary>
-	///   The delta of the angle between two touch points
+	///     The delta of the angle between two touch points
 	/// </summary>
 	public static float TurnAngleDelta;
+
 	/// <summary>
-	///   The angle between two touch points
+	///     The angle between two touch points
 	/// </summary>
 	public static float TurnAngle;
 
 	/// <summary>
-	///   The delta of the distance between two touch points that were distancing from each other
+	///     The delta of the distance between two touch points that were distancing from each other
 	/// </summary>
 	public static float PinchDistanceDelta;
+
 	/// <summary>
-	///   The distance between two touch points that were distancing from each other
+	///     The distance between two touch points that were distancing from each other
 	/// </summary>
 	public static float PinchDistance;
 
 	/// <summary>
-	///   Calculates Pinch and Turn - This should be used inside LateUpdate
+	///     Calculates Pinch and Turn - This should be used inside LateUpdate
 	/// </summary>
 	public static void Calculate() {
 		PinchDistance = PinchDistanceDelta = 0;
@@ -53,11 +55,10 @@ public class DetectTouchMovement : MonoBehaviour {
 		PinchDistanceDelta = PinchDistance - prevDistance;
 
 		// ... if it's greater than a minimum threshold, it's a pinch!
-		if (Mathf.Abs(PinchDistanceDelta) > MinPinchDistance) {
+		if (Mathf.Abs(PinchDistanceDelta) > MinPinchDistance)
 			PinchDistanceDelta *= PinchRatio;
-		} else {
+		else
 			PinchDistance = PinchDistanceDelta = 0;
-		}
 
 		// ... or check the delta angle between them ...
 		TurnAngle = Angle(touch1.position, touch2.position);
@@ -66,13 +67,18 @@ public class DetectTouchMovement : MonoBehaviour {
 		TurnAngleDelta = Mathf.DeltaAngle(prevTurn, TurnAngle);
 
 		// ... if it's greater than a minimum threshold, it's a turn!
-		if (Mathf.Abs(TurnAngleDelta) > MinTurnAngle) {
+		if (Mathf.Abs(TurnAngleDelta) > MinTurnAngle)
 			TurnAngleDelta *= PinchTurnRatio;
-		} else {
+		else
 			TurnAngle = TurnAngleDelta = 0;
-		}
 	}
 
+	/// <summary>
+	///     Calculates the angle between two Vector2's
+	/// </summary>
+	/// <param name="pos1">The first Vector2</param>
+	/// <param name="pos2">The second Vector2</param>
+	/// <returns>The angle between pos1 and pos2</returns>
 	private static float Angle(Vector2 pos1, Vector2 pos2) {
 		Vector2 from = pos2 - pos1;
 		Vector2 to = new Vector2(1, 0);
@@ -80,9 +86,8 @@ public class DetectTouchMovement : MonoBehaviour {
 		float result = Vector2.Angle(from, to);
 		Vector3 cross = Vector3.Cross(from, to);
 
-		if (cross.z > 0) {
+		if (cross.z > 0)
 			result = 360f - result;
-		}
 
 		return result;
 	}

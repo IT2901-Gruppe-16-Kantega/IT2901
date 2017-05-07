@@ -1,41 +1,44 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
-/*
-Handles the GPS on the phone
-*/
+/// <summary>
+///     Handles the GPS on the phone
+/// </summary>
 public class GpsManager : MonoBehaviour {
 	// How many seconds to wait max
 	private const int MaxWait = 10;
-	private int _waitTime;
 	// How many tries before giving up starting location
 	private const int MaxTries = 3;
-	private int _tries;
 
 	private const float MoveSpeed = 60f;
+	private const float GpsAccuracy = 2f; // Accuracy in meters
+	private const float GpsUpdateInterval = 2f; // How many meters before it updates
 
 	// Our default latitude, longitude, and altitude
 	// Default is somewhere in the middle of Trondheim
 	public static GpsLocation MyLocation = new GpsLocation(63.435859, 10.416847, 10); // precision of ~11.1cm
-	private GpsLocation _oldLocation;
 
 	[HideInInspector]
 	public static bool InitialPositionUpdated;
 
+	private bool _gpsSet;
+	private Vector3 _newPosition;
+
+	private GpsLocation _oldLocation;
+
 	// The Service that handles the GPS on the phone
 	private LocationService _service;
-	private bool _gpsSet;
-	private const float GpsAccuracy = 2f; // Accuracy in meters
-	private const float GpsUpdateInterval = 2f; // How many meters before it updates
-    private Vector3 _newPosition;
+	private int _tries;
+	private int _waitTime;
 
-    public Text DebugText; // TODO remove when done. Is only for debugging
+	public Text DebugText; // TODO remove when done. Is only for debugging
 
-    private void Start() {
+	private void Start() {
 		// Set the service variable to the phones location manager (Input.location)
-	    InitialPositionUpdated = false;
-	    _gpsSet = false;
+		InitialPositionUpdated = false;
+		_gpsSet = false;
 
 		_service = Input.location;
 		// If the gps service is not enabled by the user
@@ -52,34 +55,42 @@ public class GpsManager : MonoBehaviour {
 		}
 	}
 
-    private void Update() {
+	private void Update() {
 		if (!_gpsSet || !_service.isEnabledByUser)
 			return;
 		transform.position = Vector3.MoveTowards(transform.position, _newPosition, MoveSpeed * Time.deltaTime);
-    }
+	}
 
-    private void UpdateLocation() {
-        if (!_gpsSet || !_service.isEnabledByUser) return;
-        if (!((_newPosition - transform.position).magnitude < 0.1f)) return;
-        MyLocation.Latitude = _service.lastData.latitude; MyLocation.Longitude = _service.lastData.longitude; MyLocation.Altitude = _service.lastData.altitude;
-        if (!InitialPositionUpdated){
-            _oldLocation = MyLocation;
-            InitialPositionUpdated = true;
-        }
-        double distance = HelperFunctions.Haversine(_oldLocation, MyLocation);
-        double bearing = HelperFunctions.CalculateBearing(_oldLocation, MyLocation);
-		_newPosition = transform.position - new Vector3((float) (-System.Math.Cos(bearing) * distance), 0, (float) (System.Math.Sin(bearing) * distance));
+	/// <summary>
+	///     Updates the _newPosition. To be used with InvokeRepeating
+	/// </summary>
+	private void UpdateLocation() {
+		if (!_gpsSet || !_service.isEnabledByUser)
+			return;
+		if (!((_newPosition - transform.position).magnitude < 0.1f))
+			return;
+		MyLocation.Latitude = _service.lastData.latitude;
+		MyLocation.Longitude = _service.lastData.longitude;
+		MyLocation.Altitude = _service.lastData.altitude;
+		if (!InitialPositionUpdated) {
+			_oldLocation = MyLocation;
+			InitialPositionUpdated = true;
+		}
+		double distance = HelperFunctions.Haversine(_oldLocation, MyLocation);
+		double bearing = HelperFunctions.CalculateBearing(_oldLocation, MyLocation);
+		_newPosition = transform.position -
+						new Vector3((float) (-Math.Cos(bearing) * distance), 0, (float) (Math.Sin(bearing) * distance));
 		_oldLocation = MyLocation;
-    }
+	}
 
-    private void OnDestroy() {
+	private void OnDestroy() {
 		// Stop the location service when this gameobject is destroyed (scene change)
-		if(_service != null)
+		if (_service != null)
 			_service.Stop();
 	}
 
 	/// <summary>
-	/// Starts location service. Retries if it fails. Fails up to MaxTries amount of times
+	///     Starts location service. Retries if it fails. Fails up to MaxTries amount of times
 	/// </summary>
 	private IEnumerator StartLocation() {
 		// A loop to wait for the service starts. Waits a maximum of MaxWait seconds
@@ -89,10 +100,9 @@ public class GpsManager : MonoBehaviour {
 		}
 
 		// If we timed out
-		if (_waitTime >= MaxWait) {
+		if (_waitTime >= MaxWait)
 			yield return new WaitForSeconds(1);
-		}
-		
+
 		if (_service.status == LocationServiceStatus.Failed || _waitTime >= MaxWait) {
 			yield return new WaitForSeconds(1);
 			if (_tries >= MaxTries)
@@ -102,11 +112,11 @@ public class GpsManager : MonoBehaviour {
 		} else {
 			_gpsSet = true;
 		}
-        InvokeRepeating("UpdateLocation", 0, 0.5f);
-    }
+		InvokeRepeating("UpdateLocation", 0, 0.5f);
+	}
 
 	// The struct which contains latitude, longitude and altitude
-	[System.Serializable]
+	[Serializable]
 	public struct GpsLocation {
 		public double Latitude;
 		public double Longitude;
@@ -118,6 +128,7 @@ public class GpsManager : MonoBehaviour {
 			Longitude = lon;
 			Altitude = 0;
 		}
+
 		// Constructor for latitude, longitude, and altitude
 		public GpsLocation(double lat, double lon, double alt) {
 			Latitude = lat;

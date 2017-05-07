@@ -4,15 +4,15 @@ using UnityEngine.UI;
 /*
 Renders the phone's camera onto the world
 */
+
 public class CameraBackground : MonoBehaviour {
-	// The camera itself
-	private WebCamTexture _phoneCamera;
-	// The object that displays the picture
-	private RawImage _image;
 	// To make the picture not squishy
 	private AspectRatioFitter _arf;
+	// The object that displays the picture
+	private RawImage _image;
+	// The camera itself
+	private WebCamTexture _phoneCamera;
 
-	// Use this for initialization
 	private void Start() {
 		if (WebCamTexture.devices.Length == 0) {
 			Debug.Log("No Camera Devices");
@@ -37,13 +37,12 @@ public class CameraBackground : MonoBehaviour {
 		_phoneCamera.Play();
 	}
 
-	// Update is called once per frame
 	private void Update() {
-		if (WebCamTexture.devices.Length == 0) {
+		if (WebCamTexture.devices.Length == 0)
 			return;
-		}
 		if (PlayerPrefs.GetInt("leMode", 0) == 1) {
-			if (!_phoneCamera.isPlaying) return;
+			if (!_phoneCamera.isPlaying)
+				return;
 			_phoneCamera.Stop();
 			_image.color = Color.black;
 			_image.texture = new Texture();
