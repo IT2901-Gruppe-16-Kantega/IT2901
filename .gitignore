@@ -70,3 +70,4 @@ sysinfo.txt
 *.unitypackagenode_modules/
 App/
 ARTEST3/App/
+*.ai
