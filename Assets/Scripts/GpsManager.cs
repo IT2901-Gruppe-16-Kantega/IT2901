@@ -112,6 +112,11 @@ public class GpsManager : MonoBehaviour {
 		} else {
 			_gpsSet = true;
 		}
+		UpdateLocation(); // Get the current location
+		while (GenerateRoads.IsCreatingRoads || GenerateObjects.IsCreatingSigns) {
+			// Dont update our location while stuff is created.
+			yield return new WaitForEndOfFrame();
+		}
 		InvokeRepeating("UpdateLocation", 0, 0.5f);
 	}
 
