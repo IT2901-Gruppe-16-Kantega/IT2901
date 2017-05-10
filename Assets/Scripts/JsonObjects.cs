@@ -171,6 +171,7 @@ public class RoadSearchObject {
 	public long key;
 	public List<Objekter> report;
 	public List<Objekter> roadObjects;
+	public List<Objekter> roads;
 }
 
 [Serializable]

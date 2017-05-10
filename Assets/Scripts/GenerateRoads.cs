@@ -27,19 +27,15 @@ public class GenerateRoads : MonoBehaviour {
 	///     Gets nearby roads and instantiates them
 	/// </summary>
 	public void FetchRoad() {
-		string localData = LocalStorage.GetData("roads.json");
-		_useLocalData = true; // TODO in react native -> send roads as well.
 		if (_useLocalData || Application.internetReachability != NetworkReachability.NotReachable) {
 			_apiWrapper.FetchObjects(532, GpsManager.MyLocation, roads => {
 				UiScripts.RoadsToInstantiate = roads.Count;
 				StartCoroutine(CreateRoadMesh(roads));
 			});
 		} else {
-			if (string.IsNullOrEmpty(localData)) {
-				// TODO Do something if data loaded is not there. Query the user maybe?
-			}
-			// Make a new RootObject and parse the json data from the request
-			NvdbObjekt data = JsonUtility.FromJson<NvdbObjekt>(localData);
+			NvdbObjekt data = new NvdbObjekt {
+				objekter = SharedData.AllData.roads
+			};
 			UiScripts.RoadsToInstantiate = data.objekter.Count;
 
 			// Go through each Objekter in the data.objekter (the road objects)
