@@ -69,10 +69,10 @@ public class ApiWrapper : MonoBehaviour {
 				return;
 			// If there is no error and the requested object isnt a road
 			// Quick and dirty, only if the requested id is 532. Obviously should do this someplace else
-			if (id == 532)
-				Debug.Log(LocalStorage.SaveData("roads.json", www.text) ? "FILE SAVED" : "The file failed to save.");
-			else
-				Debug.Log(LocalStorage.SaveData("localRoadObjects.json", www.text) ? "FILE SAVED" : "The file failed to save.");
+			//if (id == 532)
+			//	Debug.Log(LocalStorage.SaveData("roads.json", www.text) ? "FILE SAVED" : "The file failed to save.");
+			//else
+			//	Debug.Log(LocalStorage.SaveData("localRoadObjects.json", www.text) ? "FILE SAVED" : "The file failed to save.");
 		}));
 	}
 

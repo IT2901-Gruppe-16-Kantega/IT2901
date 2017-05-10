@@ -65,7 +65,8 @@ public class GenerateObjects : MonoBehaviour {
 				UiScripts.ObjectsToInstantiate = objects.Count;
 				StartCoroutine(MakeObjects(_roadObjectList));
 			});
-		} else {
+            _roadGenerator.FetchRoad(); // Since the local data has been safely loaded, fetch the roads
+        } else {
 			if (string.IsNullOrEmpty(localData)) {
 				// TODO Do something if data loaded is not there. Query the user maybe?
 			}

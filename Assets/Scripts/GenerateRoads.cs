@@ -27,7 +27,7 @@ public class GenerateRoads : MonoBehaviour {
 	///     Gets nearby roads and instantiates them
 	/// </summary>
 	public void FetchRoad() {
-		if (_useLocalData || Application.internetReachability != NetworkReachability.NotReachable) {
+        if (_useLocalData || Application.internetReachability != NetworkReachability.NotReachable) {
 			_apiWrapper.FetchObjects(532, GpsManager.MyLocation, roads => {
 				UiScripts.RoadsToInstantiate = roads.Count;
 				StartCoroutine(CreateRoadMesh(roads));
