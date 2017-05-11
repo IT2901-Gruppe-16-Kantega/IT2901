@@ -1,3 +1,5 @@
+<img src="https://github.com/NinhDo/IT2901/blob/master/Assets/Images/VegAR_MAIN_LOGO-01.png" alt="Unified Logo" width=200/><img src="https://github.com/NinhDo/IT2901/blob/master/Assets/Images/VegAR_LOGO.png" alt="AR Icon" width=200 float/>
+
 Bruk data fra Nasjonal vegdatabank (NVDB) for å visualisere vegobjekter i augmented reality (AR).
 
 ## Komme i gang
