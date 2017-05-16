@@ -47,8 +47,8 @@ public class RoadObjectManager : MonoBehaviour {
 		Distance = new Vector3(transform.position.x, 0, transform.position.z).magnitude;
 		Bearing = Math.Asin(transform.position.x / Distance) + Math.PI / 2;
 		DeltaDistance =
-			(new Vector3(transform.position.x, 0, transform.position.z) - new Vector3(OriginPoint.x, 0, OriginPoint.z)).magnitude;
-		DeltaBearing = Math.Atan2(transform.position.z - OriginPoint.z, transform.position.x - OriginPoint.x) * 180 / Math.PI
+			(new Vector3(transform.position.x, 0, transform.position.z) - new Vector3(GpsManager.NewPosition.x, 0, GpsManager.NewPosition.z) - new Vector3(OriginPoint.x, 0, OriginPoint.z)).magnitude;
+		DeltaBearing = Math.Atan2(transform.position.z - GpsManager.NewPosition.z - OriginPoint.z, transform.position.x - GpsManager.NewPosition.x - OriginPoint.x) * 180 / Math.PI
 						-
 						90;
 		if (DeltaBearing < 0)
@@ -90,9 +90,9 @@ public class RoadObjectManager : MonoBehaviour {
 	/// </summary>
 	public void ResetPosition() {
 		if (IsDefault)
-			transform.position = OriginPoint;
+			transform.position = OriginPoint - GpsManager.NewPosition;
 		else
-			SignPost.transform.position = OriginPoint;
+			SignPost.transform.position = OriginPoint - GpsManager.NewPosition;
 		HasBeenMoved = false;
 		DeltaDistance =
 			(new Vector3(transform.position.x, 0, transform.position.z) - new Vector3(OriginPoint.x, 0, OriginPoint.z)).magnitude;
