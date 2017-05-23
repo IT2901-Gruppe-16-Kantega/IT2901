@@ -24,7 +24,7 @@ public class GpsManager : MonoBehaviour {
 	public static bool InitialPositionUpdated;
 
 	private bool _gpsSet;
-	private Vector3 _newPosition;
+	public static Vector3 NewPosition;
 
 	private GpsLocation _oldLocation;
 
@@ -58,7 +58,7 @@ public class GpsManager : MonoBehaviour {
 	private void Update() {
 		if (!_gpsSet || !_service.isEnabledByUser)
 			return;
-		transform.position = Vector3.MoveTowards(transform.position, _newPosition, MoveSpeed * Time.deltaTime);
+		transform.position = Vector3.MoveTowards(transform.position, NewPosition, MoveSpeed * Time.deltaTime);
 	}
 
 	/// <summary>
@@ -67,7 +67,7 @@ public class GpsManager : MonoBehaviour {
 	private void UpdateLocation() {
 		if (!_gpsSet || !_service.isEnabledByUser)
 			return;
-		if (!((_newPosition - transform.position).magnitude < 0.1f))
+		if (!((NewPosition - transform.position).magnitude < 0.1f))
 			return;
 		MyLocation.Latitude = _service.lastData.latitude;
 		MyLocation.Longitude = _service.lastData.longitude;
@@ -78,7 +78,7 @@ public class GpsManager : MonoBehaviour {
 		}
 		double distance = HelperFunctions.Haversine(_oldLocation, MyLocation);
 		double bearing = HelperFunctions.CalculateBearing(_oldLocation, MyLocation);
-		_newPosition = transform.position -
+		NewPosition = transform.position -
 						new Vector3((float) (-Math.Cos(bearing) * distance), 0, (float) (Math.Sin(bearing) * distance));
 		_oldLocation = MyLocation;
 	}
